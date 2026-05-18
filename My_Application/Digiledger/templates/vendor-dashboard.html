@@ -5,7 +5,187 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VENDOR DASHBOARD</title>
 </head>
-<body>
-    
+<body class="dashboard-page">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">VendorLedger</div>
+    <nav>
+      <a href="#expenses" class="nav-link active">Expenses</a>
+      <a href="#inventory" class="nav-link">Inventory</a>
+      <a href="#pnl" class="nav-link">Profit & Loss</a>
+    </nav>
+    <button id="logout-btn" class="btn-logout">Logout</button>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- Header -->
+    <header class="dashboard-header">
+      <h1>My Dashboard</h1>
+      <span id="vendor-name" class="vendor-label"></span>
+    </header>
+
+    <!-- ── EXPENSES SECTION ── -->
+    <section id="expenses" class="section">
+      <div class="section-header">
+        <h2>Expenses</h2>
+        <button class="btn-primary" id="open-expense-form">+ Add Expense</button>
+      </div>
+
+      <!-- Add Expense Form (hidden by default) -->
+      <div id="expense-form" class="card form-card hidden">
+        <h3>New Expense</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Amount (KES)</label>
+            <input type="number" id="exp-amount" placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="exp-date">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Category</label>
+            <select id="exp-category">
+              <option value="food">Food</option>
+              <option value="transport">Transport</option>
+              <option value="supplies">Supplies</option>
+              <option value="utilities">Utilities</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Supplier Name</label>
+            <input type="text" id="exp-supplier" placeholder="Supplier or shop name">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="exp-notes" placeholder="Any extra details..."></textarea>
+        </div>
+
+        <!-- Voice Input -->
+        <div class="voice-row">
+          <button id="voice-btn" class="btn-voice">🎙 Speak Expense</button>
+          <span id="voice-status" class="voice-status"></span>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-secondary" id="cancel-expense">Cancel</button>
+          <button class="btn-primary" id="save-expense">Save Expense</button>
+        </div>
+      </div>
+
+      <!-- Expenses Table -->
+      <div class="card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Supplier</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Notes</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="expenses-table-body">
+            <!-- Filled by app.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── INVENTORY SECTION ── -->
+    <section id="inventory" class="section">
+      <div class="section-header">
+        <h2>Current Supply / Inventory</h2>
+        <button class="btn-primary" id="open-inventory-form">+ Add Item</button>
+      </div>
+
+      <!-- Add Inventory Form (hidden by default) -->
+      <div id="inventory-form" class="card form-card hidden">
+        <h3>New Inventory Item</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Item Name</label>
+            <input type="text" id="inv-name" placeholder="e.g. Maize flour">
+          </div>
+          <div class="form-group">
+            <label>Quantity</label>
+            <input type="number" id="inv-quantity" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label>Unit</label>
+            <input type="text" id="inv-unit" placeholder="kg, litres, bags...">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-secondary" id="cancel-inventory">Cancel</button>
+          <button class="btn-primary" id="save-inventory">Save Item</button>
+        </div>
+      </div>
+
+      <!-- Inventory Table -->
+      <div class="card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Quantity</th>
+              <th>Unit</th>
+              <th>Last Updated</th>
+            </tr>
+          </thead>
+          <tbody id="inventory-table-body">
+            <!-- Filled by app.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── PROFIT & LOSS SECTION ── -->
+    <section id="pnl" class="section">
+      <div class="section-header">
+        <h2>Profit & Loss</h2>
+
+        <!-- Date range filter -->
+        <div class="date-filter">
+          <input type="date" id="pnl-from">
+          <span>to</span>
+          <input type="date" id="pnl-to">
+          <button class="btn-primary" id="pnl-filter-btn">Filter</button>
+        </div>
+      </div>
+
+      <!-- P&L Summary Cards -->
+      <div class="pnl-cards">
+        <div class="pnl-card income">
+          <span class="pnl-label">Total Income</span>
+          <span class="pnl-value" id="pnl-income">KES 0.00</span>
+        </div>
+        <div class="pnl-card expenses">
+          <span class="pnl-label">Total Expenses</span>
+          <span class="pnl-value" id="pnl-expenses">KES 0.00</span>
+        </div>
+        <div class="pnl-card profit">
+          <span class="pnl-label">Net Profit</span>
+          <span class="pnl-value" id="pnl-profit">KES 0.00</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/static/js/app.js"></script>
 </body>
 </html>
