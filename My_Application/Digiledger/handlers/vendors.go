@@ -26,7 +26,7 @@ func Vendors(w  http.ResponseWriter, r *http.Request) {
 		json.NewDecoder(r.Body).Decode(&v)
 		err := db.CreateVendor(v.Name,v.Email,v.Role)
 		if err != nil {
-			http.Error(w "Couuld not create Vendor", http.StatusInternalServerError)
+			http.Error(w "Could not create Vendor", http.StatusInternalServerError)
 			return
 		}
 		w.WriteHeader(http.StatusCreated)

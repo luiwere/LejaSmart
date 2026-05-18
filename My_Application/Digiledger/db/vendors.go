@@ -28,4 +28,13 @@ func GetAllVendors() ([]Vendor, error) {
 	return vendors, nil
 }
 
+func CreateVendor(name, email, role string) error {
+	id := uuid.New.String()
+	_, err := DB.Exec (
+		`INSERT INTO vendors (id, name, email, role) VALUES (?,?,?,?)`
+		id, name, email, role
+	)
+	return err
+}
+
    
