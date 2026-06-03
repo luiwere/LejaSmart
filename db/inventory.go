@@ -28,3 +28,13 @@ func GetInventory(vendorID string) ([]InventoryItem, error) {
     }
     return items, nil
 }
+
+func SaveInventoryItem(vendorID, name string, quantity float64, unit string) error {
+    id := uuid.New().String()
+    _, err := DB.Exec(
+        `INSERT OR REPLACE INTO inventory (id, vendor_id, name, quantity, unit, updated_at)
+         VALUES (?, ?, ?, ?, ?, datetime('now'))`,
+        id, vendorID, name, quantity, unit,
+    )
+    return err
+}
