@@ -22,17 +22,17 @@ func GetAllVendors() ([]Vendor, error) {
 	var vendors []Vendor 
 	for rows.Next() {
 		var v Vendor
-		rows.Scan(&v.ID,&v.Name,&v.Email,&v.Role,&CreatedAt)
+		rows.Scan(&v.ID,&v.Name,&v.Email,&v.Role,&v.CreatedAt)
 		vendors = append(vendors,v)
 	}
 	return vendors, nil
 }
 
 func CreateVendor(name, email, role string) error {
-	id := uuid.New.String()
+	id := uuid.New().String()
 	_, err := DB.Exec (
-		`INSERT INTO vendors (id, name, email, role) VALUES (?,?,?,?)`
-		id, name, email, role
+		`INSERT INTO vendors (id, name, email, role) VALUES (?,?,?,?)`,
+		id, name, email, role,
 	)
 	return err
 }

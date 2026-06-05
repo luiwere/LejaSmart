@@ -3,14 +3,16 @@ package db
 import (
 	"database/sql"
 	"log"
-	"github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3"
 )
+
+var DB *sql.DB
 
 func Init() {
 	var err error
 
 	// Create or Open the SQLite Database file
-	DB, err := sql.Open("sqlite3", "./vendorledger.db")
+	DB, err = sql.Open("sqlite3", "./Digiledgerledger.db")
 	if err != nil {
 		log.Fatal("Could not open Database:", err)
 	}
@@ -31,7 +33,7 @@ func createTables() {
 	queries := []string{
 
 		// Vendors Table
-	`CREATE TABLE ID NONE EXISTS vendors (
+	`CREATE TABLE IF NOT EXISTS vendors (
 		id TEXT PRIMARY KEY,
 		name TEXT NOT NULL,
 		email TEXT UNIQUE NOT NULL,
@@ -40,7 +42,7 @@ func createTables() {
 	);`,
 
 	// Expenses Table
-	`CREATE TABLE IF NONE EXISTS expenses (
+	`CREATE TABLE IF NOT EXISTS expenses (
 		id TEXT PRIMARY KEY,
 		vendor_id TEXT NOT NULL,
 		amount REAL NOT NULL,
@@ -49,30 +51,30 @@ func createTables() {
 		supplier_name TEXT,
 		notes TEXT,
 		created_at TEXT DEFAULT (datetime('now')),
-		FOREIGN KEY (vendor_id) REFERNCES vendor(id)
+		FOREIGN KEY (vendor_id) REFERENCES vendors(id)
 
 	);`,
 
 	// Inventory Table
-	`CREATE TABLE IF NONE EXISTS inventory (
+	`CREATE TABLE IF NOT EXISTS inventory (
 		id TEXT PRIMARY KEY,
 		vendor_id TEXT NOT NULL,
 		name TEXT NOT NULL,
 		quantity REAL NOT NULL,
 		unit TEXT,
-		updated_at TEXT DEFAULT (datetime(''now')),
+		updated_at TEXT DEFAULT (datetime('now')),
 		FOREIGN KEY (vendor_id) REFERENCES vendors(id)
 	);`,
 
 	// Income Timetable
-	`CREATE TABLE IF NONE EXISTS income (
+	`CREATE TABLE IF NOT EXISTS income (
 		id TEXT PRIMARY KEY,
 		vendor_id TEXT NOT NULL,
 		amount REAL NOT NULL,
 		date TEXT NOT NULL,
 		notes TEXT,
 		created_at TEXT DEFAULT (datetime('now')),
-		FOREIGN KEY (vendor_id) REFERENCES vendor(id)
+		FOREIGN KEY (vendor_id) REFERENCES vendorS(id)
 
 	);`,
 	}
