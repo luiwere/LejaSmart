@@ -16,8 +16,8 @@ func main() {
 	http.Handle("static/",http.StripPrefix("/static/",http.FileServer(http.Dir("static"))))
 
 	http.HandleFunc("/", handlers.LoginPage)
-	http.HandleFunc("/vendor", handlers.vendorsDashboard)
-	http.HandleFunc("/accountant", handlers.AccountantDashboard)
+	http.HandleFunc("/vendor", handlers.VendorDashboard)
+	http.HandleFunc("/accountant", handlers.Accountantdashboard)
 
 	http.HandleFunc("/expenses", handlers.Expenses)
 	http.HandleFunc("/inventory",handlers.Inventory)
