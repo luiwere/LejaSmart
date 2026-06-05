@@ -13,13 +13,13 @@ func Inventory(w http.ResponseWriter, r *http.Request) {
 		// GET - Fetch Invntory from a vendor
 	case http.MethodGet:
 		vendorID := r.URL.Query().Get("vendorID")
-		items, err := db.GetInventory(VendorID)
+		items, err := db.GetInventory(vendorID)
 		if err != nil {
-			http.Error("Could not Fetch Inventoty", http.StatusSeerverInternalError)
+			http.Error(w, "Could not Fetch Inventoty", http.StatusInternalServerError)
 			return
 		}
-		w.Header().Set("cotent-Type", "application/json")
-		json.NewEncoder(w).encode(items)
+		w.Header().Set("Cotent-Type", "application/json")
+		json.NewEncoder(w).Encode(items)
 
 
 		// POST - add/update a supply item
@@ -30,10 +30,10 @@ func Inventory(w http.ResponseWriter, r *http.Request) {
 			Quantity float64 `json:"quantity"`
 			Unit string `json:"unit"`
 		}
-		json.New.Decoder(r.Body).Decode(&item)
+		json.NewDecoder(r.Body).Decode(&item)
 		err := db.SaveInventoryItem(item.VendorID, item.Name, item.Quantity, item.Unit)
 		if err != nil {
-		http.Error("Could not add item to Inventoyr", http.StatusInternalServerError)
+		http.Error(w , "Could not add item to Inventoyr", http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)

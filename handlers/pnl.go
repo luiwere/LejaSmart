@@ -18,7 +18,7 @@ func ProfitAndLoss(w http.ResponseWriter, r *http.Request) {
 	summary, err := db.GetPnL(vendorID, from, to)
 
 	if err != nil {
-		http.Error("Could Not Calculate Profit&Loss", http.StstusInternalSeverError)
+		http.Error(w, "Could Not Calculate Profit&Loss", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")

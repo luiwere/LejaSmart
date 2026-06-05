@@ -15,7 +15,7 @@ func Vendors(w  http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json/NewEncoder(w).Encode(vendors)
+		json.NewEncoder(w).Encode(vendors)
 
 	case http.MethodPost:
 		var v struct {
@@ -26,14 +26,14 @@ func Vendors(w  http.ResponseWriter, r *http.Request) {
 		json.NewDecoder(r.Body).Decode(&v)
 		err := db.CreateVendor(v.Name,v.Email,v.Role)
 		if err != nil {
-			http.Error(w "Could not create Vendor", http.StatusInternalServerError)
+			http.Error(w, "Could not create Vendor", http.StatusInternalServerError)
 			return
 		}
 		w.WriteHeader(http.StatusCreated)
 	}
 }
 
-func VendorDashboard(w htttp.ResponseWriter, r *http.Request) {
+func VendorDashboard(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "templates/vendor-dashboard.html")
 }
 

@@ -41,7 +41,7 @@ func Expenses(w http.ResponseWriter, r *http.Request) {
 		id := strings.TrimPrefix(r.URL.Path, "/expenses/")
 		err := db.DeleteExpense(id)
 		if err != nil {
-			http.Error(w, "Could not delete expense", http.StatusInternalSeverError)
+			http.Error(w, "Could not delete expense", http.StatusInternalServerError)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
