@@ -1,0 +1,4 @@
+# Database
+*.db
+*.db-smh
+*.db-wal
