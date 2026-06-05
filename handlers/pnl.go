@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
-	"vendorledger/db"
+	"DigiLedger/db"
 )
 
 func ProfitAndLoss(w http.ResponseWriter, r *http.Request) {
