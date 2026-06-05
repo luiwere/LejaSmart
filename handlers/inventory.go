@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"DigiLedger/db"
+	"Digiledger/db"
 
 )
 

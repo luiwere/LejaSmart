@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"DigiLedger/db"
+	"Digiledger/db"
 )
 func Vendors(w  http.ResponseWriter, r *http.Request) {
 	switch r.Method {
