@@ -1,9 +1,17 @@
 package handlers
 
-import "net/http"
+import (
+	"html/template"
+	"net/http"
+)
 
 func LoginPage(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "templates/login.html")
+	tmpl, err := template.ParseFiles("templates/login.html")
+	if err != nil {
+		http.Error(w, "Could not load page", http.StatusInternalServerError)
+		return
+	}
+	tmpl.Execute(w, nil)
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {

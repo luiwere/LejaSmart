@@ -2,10 +2,13 @@ package handlers
 
 import (
 	"encoding/json"
+	"html/template"
 	"net/http"
+
 	"Digiledger/db"
 )
-func Vendors(w  http.ResponseWriter, r *http.Request) {
+
+func Vendors(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 
 	case http.MethodGet:
@@ -19,12 +22,12 @@ func Vendors(w  http.ResponseWriter, r *http.Request) {
 
 	case http.MethodPost:
 		var v struct {
-			Name string `json:"name"`
+			Name  string `json:"name"`
 			Email string `json:"email"`
-			Role string `json:"role"`
+			Role  string `json:"role"`
 		}
 		json.NewDecoder(r.Body).Decode(&v)
-		err := db.CreateVendor(v.Name,v.Email,v.Role)
+		err := db.CreateVendor(v.Name, v.Email, v.Role)
 		if err != nil {
 			http.Error(w, "Could not create Vendor", http.StatusInternalServerError)
 			return
@@ -34,9 +37,19 @@ func Vendors(w  http.ResponseWriter, r *http.Request) {
 }
 
 func VendorDashboard(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "templates/vendor-dashboard.html")
+	tmpl, err := template.ParseFiles("templates/vendor-dashboard.html")
+	if err != nil {
+		http.Error(w, "Could not load page", http.StatusInternalServerError)
+		return
+	}
+	tmpl.Execute(w, nil)
 }
 
 func Accountantdashboard(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "templates/accountant-dashboard.html")
+	tmpl, err := template.ParseFiles("templates/accountant-dashboard.html")
+	if err != nil {
+		http.Error(w, "Could not load page", http.StatusInternalServerError)
+		return
+	}
+	tmpl.Execute(w, nil)
 }
