@@ -13,7 +13,7 @@ func main() {
 	// connect to Database
 	db.Init()
 
-	http.Handle("static/",http.StripPrefix("/static/",http.FileServer(http.Dir("static"))))
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	http.HandleFunc("/", handlers.LoginPage)
 	http.HandleFunc("/vendor", handlers.VendorDashboard)
