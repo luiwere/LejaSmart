@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DigiLedger — Register</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="auth-page">
+
+  <div class="auth-card">
+    <div class="logo">DigiLedger</div>
+    <p class="tagline">Create your account to get started.</p>
+
+    <form id="register-form" method="POST" action="/register">
+
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="Your name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="••••••••" required>
+      </div>
+
+      <div class="form-group">
+        <label for="role">Register as</label>
+        <select id="role" name="role">
+          <option value="vendor">Vendor</option>
+          <option value="accountant">Accountant</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-primary">Create Account</button>
+
+      <p class="auth-footer">
+        Already have an account? <a href="/">Login</a>
+      </p>
+
+    </form>
+  </div>
+
+</body>
+</html>
