@@ -1,15 +1,10 @@
 package db
 
-type PnLSummary struct {
-    TotalIncome   float64 `json:"total_income"`
-    TotalExpenses float64 `json:"total_expenses"`
-    Profit        float64 `json:"profit"`
-    From          string  `json:"from"`
-    To            string  `json:"to"`
-}
-
-func GetPnL(vendorID, from, to string) (PnLSummary, error) {
-    var summary PnLSummary
+import (
+    "Digiledger/models"
+)
+func GetPnL(vendorID, from, to string) (models.PnLSummary, error) {
+    var summary models.PnLSummary
     summary.From = from
     summary.To = to
 

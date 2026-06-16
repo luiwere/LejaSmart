@@ -3,20 +3,10 @@ package db
 import (
     "database/sql"
     "github.com/google/uuid"
+    "Digiledger/models"
 )
 
-type Expense struct {
-    ID           string  `json:"id"`
-    VendorID     string  `json:"vendor_id"`
-    Amount       float64 `json:"amount"`
-    Date         string  `json:"date"`
-    Category     string  `json:"category"`
-    SupplierName string  `json:"supplier_name"`
-    Notes        string  `json:"notes"`
-    CreatedAt    string  `json:"created_at"`
-}
-
-func GetExpenses(vendorID string) ([]Expense, error) {
+func GetExpenses(vendorID string) ([]models.Expense, error) {
     var rows *sql.Rows
     var err error
 
@@ -33,9 +23,9 @@ func GetExpenses(vendorID string) ([]Expense, error) {
     }
     defer rows.Close()
 
-    var expenses []Expense
+    var expenses []models.Expense
     for rows.Next() {
-        var e Expense
+        var e models.Expense
         rows.Scan(&e.ID, &e.VendorID, &e.Amount, &e.Date, &e.Category, &e.SupplierName, &e.Notes, &e.CreatedAt)
         expenses = append(expenses, e)
     }
