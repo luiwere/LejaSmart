@@ -494,5 +494,21 @@ a {
   .pnl-cards {
     grid-template-columns: 1fr;
   }
+
+  .auth-footer {
+  text-align: center;
+  margin-top: 50px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.auth-footer a {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.auth-footer a:hover {
+  text-decoration: underline;
+}
 }
 
