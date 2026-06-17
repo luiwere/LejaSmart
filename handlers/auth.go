@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"net/http"
 	"Digiledger/db"
+    "github.com/mattn/go-sqlite3"
 )
 
 func LoginPage(w http.ResponseWriter, r *http.Request) {
@@ -17,7 +18,12 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 
 func RegisterPage(w http.ResponseWriter, r *http.Request) {
     if r.Method == http.MethodGet {
-        http.ServeFile(w, r, "templates/register.html")
+        tmpl, err := template.ParseFiles("templates/register.html")
+        if err != nil {
+            http.Error(w, "Could not load page", http.StatusInternalServerError)
+            return
+        }
+        tmpl.Execute(w, nil)
         return
     }
 
@@ -34,13 +40,16 @@ func RegisterPage(w http.ResponseWriter, r *http.Request) {
 
         err := db.CreateUser(username, email, password, role)
         if err != nil {
-            http.Error(w, "Email already taken", http.StatusConflict)
+            if sqliteErr, ok := err.(sqlite3.Error); ok && sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique {
+                http.Error(w, "Email already taken", http.StatusConflict)
+            } else {
+                http.Error(w, "Could not create account", http.StatusInternalServerError)
+            }
             return
         }
-
+    }
         http.Redirect(w, r, "/", http.StatusSeeOther)
     }
-}
 
 func Logout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
