@@ -32,13 +32,23 @@ func Init() {
 func createTables() {
 	queries := []string{
 
-		// Vendors Table
+	// Vendors Table
 	`CREATE TABLE IF NOT EXISTS vendors (
 		id TEXT PRIMARY KEY,
 		name TEXT NOT NULL,
 		email TEXT UNIQUE NOT NULL,
 		role TEXT NOT NULL DEFAULT 'vendor',
 		created_at TEXT DEFAULT (datetime('now'))
+	);`,
+
+	// Users Table
+	`CREATE TABLE IF NOT EXISTS users (
+	id TEXT PRIMARY KEY,
+	username TEXT NOT NULL,
+	email TEXT NOT NULL,
+	password TEXT NOT NULL,
+	role TEXT NOT NULL DEFAULT 'vendor',
+	created_at TEXT DEFAULT (datetime('now'))
 	);`,
 
 	// Expenses Table
