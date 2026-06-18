@@ -510,5 +510,16 @@ a {
 .auth-footer a:hover {
   text-decoration: underline;
 }
+
+.error-msg {
+  background: #fff0f0;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
 }
 
