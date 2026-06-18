@@ -3,8 +3,10 @@ package handlers
 import (
 	"html/template"
 	"net/http"
+    "time"
 	"Digiledger/db"
     "github.com/mattn/go-sqlite3"
+    "golang.org/x/crypto/bcrypt"
 )
 
 func LoginPage(w http.ResponseWriter, r *http.Request) {
@@ -34,10 +36,27 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
     return
     }
 
-    if user.Password != password {
+    err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+    if err != nil {
         http.Error(w, "Invalid Email or password", http.StatusUnauthorized)
         return
     }
+
+    http.SetCookie(w, &http.Cookie{
+        Name:     "session_user",
+        Value:    user.ID,
+        Expires:  time.Now().Add(24 * time.Hour),
+        HttpOnly: true,
+        Path:     "/",
+    })
+
+    http.SetCookie(w, &http.Cookie{
+        Name:     "session_role",
+        Value:    user.Role,
+        Expires:  time.Now().Add(24 * time.Hour),
+        HttpOnly: true,
+        Path:     "/",
+    })
 
     if user.Role == "accountant" {
         http.Redirect(w, r, "/accountant", http.StatusSeeOther)
@@ -84,5 +103,19 @@ func RegisterPage(w http.ResponseWriter, r *http.Request) {
     }
 
 func Logout(w http.ResponseWriter, r *http.Request) {
+
+    http.SetCookie(w, &http.Cookie{
+        Name:     "session_user",
+        Value:    "",
+        Expires:  time.Now().Add(-1 * time.Hour),
+        Path:     "/",
+    })
+
+    http.SetCookie(w, &http.Cookie{
+        Name:     "session_role",
+        Value:    "",
+        Expires:  time.Now().Add(-1 * time.Hour),
+        Path:     "/",
+    })
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
