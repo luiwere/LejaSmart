@@ -8,13 +8,45 @@ import (
 )
 
 func LoginPage(w http.ResponseWriter, r *http.Request) {
+    if r.Method == http.MethodGet {
 	tmpl, err := template.ParseFiles("templates/login.html")
 	if err != nil {
 		http.Error(w, "Could not load page", http.StatusInternalServerError)
 		return
 	}
 	tmpl.Execute(w, nil)
+    return
 }
+
+
+    if r.Method == http.MethodPost {
+        email       := r.FormValue("email")
+        password    := r.FormValue("password")
+
+    if email == "" || password == "" {
+        http.Error(w, "All fields are required", http.StatusBadRequest)
+        return
+    }
+
+    user, err := db.GetUserByEmail(email)
+    if err != nil {
+        http.Error(w, "Invalid Email or password", http.StatusUnauthorized)
+    return
+    }
+
+    if user.Password != password {
+        http.Error(w, "Invalid Email or password", http.StatusUnauthorized)
+        return
+    }
+
+    if user.Role == "accountant" {
+        http.Redirect(w, r, "/accountant", http.StatusSeeOther)
+    } else {
+        http.Redirect(w, r, "/vendor", http.StatusSeeOther)
+    }
+}
+}
+
 
 func RegisterPage(w http.ResponseWriter, r *http.Request) {
     if r.Method == http.MethodGet {
