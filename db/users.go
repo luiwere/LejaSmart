@@ -3,13 +3,20 @@ package db
 import (
     "Digiledger/models"
     "github.com/google/uuid"
+    "golang.org/x/crypto/bcrypt"
 )
 
 func CreateUser(username, email, password, role string) error {
     id := uuid.New().String()
-    _, err := DB.Exec(
+
+    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+    if err != nil {
+        return err
+    }
+
+    _, err = DB.Exec(
         `INSERT INTO users (id, username, email, password, role) VALUES (?, ?, ?, ?, ?)`,
-        id, username, email, password, role,
+        id, username, email, string(hashedPassword), role,
     )
     return err
 }
