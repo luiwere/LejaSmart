@@ -22,6 +22,10 @@ func main() {
 	http.HandleFunc("/accountant", handlers.Accountantdashboard)
 	http.HandleFunc("/logout", handlers.Logout)
 
+	http.HandleFunc("/me", handlers.Me)
+
+	http.HandleFunc("/owner", handlers.OwnerDashboard)
+	
 	http.HandleFunc("/expenses", handlers.Expenses)
 	http.HandleFunc("/inventory",handlers.Inventory)
 	http.HandleFunc("/pnl", handlers.ProfitAndLoss)

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DigiLedger — Owner Dashboard</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="dashboard-page">
+
+  <aside class="sidebar">
+    <div class="logo">DigiLedger</div>
+    <nav>
+      <a href="#expenses" class="nav-link active" data-tab="vendor-view">My Expenses</a>
+      <a href="#inventory" class="nav-link" data-tab="vendor-view">Inventory</a>
+      <a href="#pnl" class="nav-link" data-tab="vendor-view">Profit & Loss</a>
+      <a href="#vendors" class="nav-link" data-tab="accountant-view">All Vendors</a>
+      <a href="#all-expenses" class="nav-link" data-tab="accountant-view">All Expenses</a>
+    </nav>
+    <button id="logout-btn" class="btn-logout" onclick="window.location.href='/logout'">Logout</button>
+  </aside>
+
+  <main class="main-content">
+
+    <header class="dashboard-header">
+      <h1>Owner Dashboard</h1>
+      <span id="owner-name" class="vendor-label"></span>
+    </header>
+
+    <div class="tab-switcher">
+      <button class="tab-btn active" data-target="vendor-view">My Business</button>
+      <button class="tab-btn" data-target="accountant-view">All Vendors</button>
+    </div>
+
+    <div id="vendor-view" class="tab-content active">
+
+      <section id="expenses" class="section">
+        <div class="section-header">
+          <h2>My Expenses</h2>
+          <button class="btn-primary" id="open-expense-form">+ Add Expense</button>
+        </div>
+
+        <div id="expense-form" class="card form-card hidden">
+          <h3>New Expense</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Amount (KES)</label>
+              <input type="number" id="exp-amount" placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" id="exp-date">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Category</label>
+              <select id="exp-category">
+                <option value="food">Food</option>
+                <option value="transport">Transport</option>
+                <option value="supplies">Supplies</option>
+                <option value="utilities">Utilities</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Supplier Name</label>
+              <input type="text" id="exp-supplier" placeholder="Supplier or shop name">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea id="exp-notes" placeholder="Any extra details..."></textarea>
+          </div>
+          <div class="voice-row">
+            <button id="voice-btn" class="btn-voice">🎙 Speak Expense</button>
+            <span id="voice-status" class="voice-status"></span>
+          </div>
+          <div class="form-actions">
+            <button class="btn-secondary" id="cancel-expense">Cancel</button>
+            <button class="btn-primary" id="save-expense">Save Expense</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Supplier</th><th>Category</th><th>Amount</th><th>Notes</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="expenses-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="inventory" class="section">
+        <div class="section-header">
+          <h2>Current Supply / Inventory</h2>
+          <button class="btn-primary" id="open-inventory-form">+ Add Item</button>
+        </div>
+
+        <div id="inventory-form" class="card form-card hidden">
+          <h3>New Inventory Item</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Item Name</label>
+              <input type="text" id="inv-name" placeholder="e.g. Maize flour">
+            </div>
+            <div class="form-group">
+              <label>Quantity</label>
+              <input type="number" id="inv-quantity" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label>Unit</label>
+              <input type="text" id="inv-unit" placeholder="kg, litres, bags...">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-secondary" id="cancel-inventory">Cancel</button>
+            <button class="btn-primary" id="save-inventory">Save Item</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <table class="data-table">
+            <thead>
+              <tr><th>Item</th><th>Quantity</th><th>Unit</th><th>Last Updated</th></tr>
+            </thead>
+            <tbody id="inventory-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="pnl" class="section">
+        <div class="section-header">
+          <h2>Profit & Loss</h2>
+          <div class="date-filter">
+            <input type="date" id="pnl-from">
+            <span>to</span>
+            <input type="date" id="pnl-to">
+            <button class="btn-primary" id="pnl-filter-btn">Filter</button>
+          </div>
+        </div>
+
+        <div class="pnl-cards">
+          <div class="pnl-card income">
+            <span class="pnl-label">Total Income</span>
+            <span class="pnl-value" id="pnl-income">KES 0.00</span>
+          </div>
+          <div class="pnl-card expenses">
+            <span class="pnl-label">Total Expenses</span>
+            <span class="pnl-value" id="pnl-expenses">KES 0.00</span>
+          </div>
+          <div class="pnl-card profit">
+            <span class="pnl-label">Net Profit</span>
+            <span class="pnl-value" id="pnl-profit">KES 0.00</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div id="accountant-view" class="tab-content">
+
+      <section id="overview" class="section">
+        <h2>Overview</h2>
+        <div class="pnl-cards">
+          <div class="pnl-card income">
+            <span class="pnl-label">Total Vendors</span>
+            <span class="pnl-value" id="total-vendors">0</span>
+          </div>
+          <div class="pnl-card expenses">
+            <span class="pnl-label">Total Expenses (All)</span>
+            <span class="pnl-value" id="total-expenses">KES 0.00</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="vendors" class="section">
+        <div class="section-header">
+          <h2>Vendors</h2>
+        </div>
+        <div class="card">
+          <table class="data-table">
+            <thead>
+              <tr><th>Name</th><th>Email</th><th>Joined</th><th>Action</th></tr>
+            </thead>
+            <tbody id="vendors-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="all-expenses" class="section">
+        <div class="section-header">
+          <h2>All Expenses</h2>
+          <div class="date-filter">
+            <select id="filter-vendor">
+              <option value="">All Vendors</option>
+            </select>
+            <button class="btn-primary" id="filter-expenses-btn">Filter</button>
+          </div>
+        </div>
+        <div class="card">
+          <table class="data-table">
+            <thead>
+              <tr><th>Date</th><th>Vendor</th><th>Supplier</th><th>Category</th><th>Amount</th><th>Notes</th></tr>
+            </thead>
+            <tbody id="all-expenses-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+  </main>
+
+  <script src="/static/js/app.js"></script>
+  <script>
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.target).classList.add('active');
+      });
+    });
+
+    window.addEventListener('pageshow', function(event) {
+      if (event.persisted) {
+        window.location.reload();
+      }
+    });
+  </script>
+
+</body>
+</html>
