@@ -17,156 +17,142 @@ function categoryBadge(cat) {
   return `<span class="badge badge-${c}">${c}</span>`;
 }
 
-function getVendorID() {
-  return localStorage.getItem('vendorID') || '';
-}
+let currentUserID = null;
 
-const loginForm = $('login-form');
-if (loginForm) {
-  loginForm.addEventListener('submit', async e => {
-    e.preventDefault();
-
-    const email    = $('email').value.trim();
-    const password = $('password').value.trim();
-    const role     = $('role').value;
-
-    localStorage.setItem('role', role);
-    localStorage.setItem('email', email);
-
-    if (role === 'vendor') {
-      localStorage.setItem('vendorID', 'vendor-001');
-      window.location.href = '/vendor';
-    } else {
-      window.location.href = '/accountant';
-    }
-  });
+async function getVendorID() {
+  if (currentUserID) return currentUserID;
+  const res = await fetch('/me');
+  if (!res.ok) return '';
+  const data = await res.json();
+  currentUserID = data.id;
+  return currentUserID;
 }
 
 const logoutBtn = $('logout-btn');
 if (logoutBtn) {
   logoutBtn.addEventListener('click', () => {
-    localStorage.clear();
-    window.location.href = '/';
+    window.location.href = '/logout';
   });
 }
 
 if (window.location.pathname === '/vendor') {
-  const vendorID = getVendorID();
+  (async () => {
+    const vendorID = await getVendorID();
 
-  const nameEl = $('vendor-name');
-  if (nameEl) nameEl.textContent = localStorage.getItem('email') || 'Vendor';
+    loadExpenses();
+    loadInventory();
+    loadPnL();
+    setupVoice();
 
-  loadExpenses();
+    $('open-expense-form').addEventListener('click', () => show('expense-form'));
+    $('cancel-expense').addEventListener('click', () => hide('expense-form'));
 
-  $('open-expense-form').addEventListener('click', () => show('expense-form'));
-  $('cancel-expense').addEventListener('click', () => hide('expense-form'));
+    $('save-expense').addEventListener('click', async () => {
+      const id = await getVendorID();
+      const body = {
+        vendor_id:     id,
+        amount:        parseFloat($('exp-amount').value),
+        date:          $('exp-date').value,
+        category:      $('exp-category').value,
+        supplier_name: $('exp-supplier').value.trim(),
+        notes:         $('exp-notes').value.trim(),
+      };
 
-  $('save-expense').addEventListener('click', async () => {
-    const body = {
-      vendor_id:     vendorID,
-      amount:        parseFloat($('exp-amount').value),
-      date:          $('exp-date').value,
-      category:      $('exp-category').value,
-      supplier_name: $('exp-supplier').value.trim(),
-      notes:         $('exp-notes').value.trim(),
-    };
+      if (!body.amount || !body.date) {
+        alert('Please fill in at least the amount and date.');
+        return;
+      }
 
-    if (!body.amount || !body.date) {
-      alert('Please fill in at least the amount and date.');
-      return;
-    }
+      const res = await fetch('/expenses', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(body),
+      });
 
-    const res = await fetch('/expenses', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(body),
+      if (res.ok) {
+        hide('expense-form');
+        clearExpenseForm();
+        loadExpenses();
+      } else {
+        alert('Could not save expense. Please try again.');
+      }
     });
 
-    if (res.ok) {
-      hide('expense-form');
-      clearExpenseForm();
-      loadExpenses();
-    } else {
-      alert('Could not save expense. Please try again.');
-    }
-  });
+    $('open-inventory-form').addEventListener('click', () => show('inventory-form'));
+    $('cancel-inventory').addEventListener('click', () => hide('inventory-form'));
 
-  loadInventory();
+    $('save-inventory').addEventListener('click', async () => {
+      const id = await getVendorID();
+      const body = {
+        vendor_id: id,
+        name:      $('inv-name').value.trim(),
+        quantity:  parseFloat($('inv-quantity').value),
+        unit:      $('inv-unit').value.trim(),
+      };
 
-  $('open-inventory-form').addEventListener('click', () => show('inventory-form'));
-  $('cancel-inventory').addEventListener('click', () => hide('inventory-form'));
+      if (!body.name || !body.quantity) {
+        alert('Please fill in the item name and quantity.');
+        return;
+      }
 
-  $('save-inventory').addEventListener('click', async () => {
-    const body = {
-      vendor_id: vendorID,
-      name:      $('inv-name').value.trim(),
-      quantity:  parseFloat($('inv-quantity').value),
-      unit:      $('inv-unit').value.trim(),
-    };
+      const res = await fetch('/inventory', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(body),
+      });
 
-    if (!body.name || !body.quantity) {
-      alert('Please fill in the item name and quantity.');
-      return;
-    }
-
-    const res = await fetch('/inventory', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(body),
+      if (res.ok) {
+        hide('inventory-form');
+        clearInventoryForm();
+        loadInventory();
+      } else {
+        alert('Could not save item. Please try again.');
+      }
     });
 
-    if (res.ok) {
-      hide('inventory-form');
-      clearInventoryForm();
-      loadInventory();
-    } else {
-      alert('Could not save item. Please try again.');
-    }
-  });
-
-  loadPnL();
-
-  $('pnl-filter-btn').addEventListener('click', () => {
-    loadPnL($('pnl-from').value, $('pnl-to').value);
-  });
-
-  setupVoice();
+    $('pnl-filter-btn').addEventListener('click', () => {
+      loadPnL($('pnl-from').value, $('pnl-to').value);
+    });
+  })();
 }
 
 if (window.location.pathname === '/accountant') {
   loadAllVendors();
   loadAllExpenses();
 
-  $('open-vendor-form').addEventListener('click', () => show('vendor-form'));
-  $('cancel-vendor').addEventListener('click', () => hide('vendor-form'));
+  const openVendorForm = $('open-vendor-form');
+  if (openVendorForm) {
+    openVendorForm.addEventListener('click', () => show('vendor-form'));
+    $('cancel-vendor').addEventListener('click', () => hide('vendor-form'));
 
-  $('save-vendor').addEventListener('click', async () => {
-    const body = {
-      name:  $('v-name').value.trim(),
-      email: $('v-email').value.trim(),
-      role:  'vendor',
-    };
+    $('save-vendor').addEventListener('click', async () => {
+      const body = {
+        name:  $('v-name').value.trim(),
+        email: $('v-email').value.trim(),
+        role:  'vendor',
+      };
 
-    if (!body.name || !body.email) {
-      alert('Please fill in name and email.');
-      return;
-    }
+      if (!body.name || !body.email) {
+        alert('Please fill in name and email.');
+        return;
+      }
 
-    const res = await fetch('/vendors', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(body),
+      const res = await fetch('/vendors', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(body),
+      });
+
+      if (res.ok) {
+        hide('vendor-form');
+        $('v-name').value = '';
+        $('v-email').value = '';
+        loadAllVendors();
+      } else {
+        alert('Could not save vendor.');
+      }
     });
-
-    if (res.ok) {
-      hide('vendor-form');
-      $('v-name').value = '';
-      $('v-email').value = '';
-      loadAllVendors();
-    } else {
-      alert('Could not save vendor.');
-    }
-  });
+  }
 
   $('filter-expenses-btn').addEventListener('click', () => {
     const vendorID = $('filter-vendor').value;
@@ -174,8 +160,95 @@ if (window.location.pathname === '/accountant') {
   });
 }
 
+if (window.location.pathname === '/owner') {
+  (async () => {
+    const vendorID = await getVendorID();
+
+    loadExpenses();
+    loadInventory();
+    loadPnL();
+    loadAllVendors();
+    loadAllExpenses();
+    setupVoice();
+
+    $('open-expense-form').addEventListener('click', () => show('expense-form'));
+    $('cancel-expense').addEventListener('click', () => hide('expense-form'));
+
+    $('save-expense').addEventListener('click', async () => {
+      const id = await getVendorID();
+      const body = {
+        vendor_id:     id,
+        amount:        parseFloat($('exp-amount').value),
+        date:          $('exp-date').value,
+        category:      $('exp-category').value,
+        supplier_name: $('exp-supplier').value.trim(),
+        notes:         $('exp-notes').value.trim(),
+      };
+
+      if (!body.amount || !body.date) {
+        alert('Please fill in at least the amount and date.');
+        return;
+      }
+
+      const res = await fetch('/expenses', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(body),
+      });
+
+      if (res.ok) {
+        hide('expense-form');
+        clearExpenseForm();
+        loadExpenses();
+      } else {
+        alert('Could not save expense. Please try again.');
+      }
+    });
+
+    $('open-inventory-form').addEventListener('click', () => show('inventory-form'));
+    $('cancel-inventory').addEventListener('click', () => hide('inventory-form'));
+
+    $('save-inventory').addEventListener('click', async () => {
+      const id = await getVendorID();
+      const body = {
+        vendor_id: id,
+        name:      $('inv-name').value.trim(),
+        quantity:  parseFloat($('inv-quantity').value),
+        unit:      $('inv-unit').value.trim(),
+      };
+
+      if (!body.name || !body.quantity) {
+        alert('Please fill in the item name and quantity.');
+        return;
+      }
+
+      const res = await fetch('/inventory', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(body),
+      });
+
+      if (res.ok) {
+        hide('inventory-form');
+        clearInventoryForm();
+        loadInventory();
+      } else {
+        alert('Could not save item. Please try again.');
+      }
+    });
+
+    $('pnl-filter-btn').addEventListener('click', () => {
+      loadPnL($('pnl-from').value, $('pnl-to').value);
+    });
+
+    $('filter-expenses-btn').addEventListener('click', () => {
+      loadAllExpenses($('filter-vendor').value);
+    });
+  })();
+}
+
 async function loadExpenses() {
-  const vendorID = getVendorID();
+  const vendorID = await getVendorID();
   const res  = await fetch(`/expenses?vendorID=${vendorID}`);
   const data = await res.json();
   const tbody = $('expenses-table-body');
@@ -201,7 +274,7 @@ async function loadExpenses() {
 }
 
 async function loadInventory() {
-  const vendorID = getVendorID();
+  const vendorID = await getVendorID();
   const res  = await fetch(`/inventory?vendorID=${vendorID}`);
   const data = await res.json();
   const tbody = $('inventory-table-body');
@@ -223,7 +296,7 @@ async function loadInventory() {
 }
 
 async function loadPnL(from = '', to = '') {
-  const vendorID = getVendorID();
+  const vendorID = await getVendorID();
   let url = `/pnl/${vendorID}`;
   if (from && to) url += `?from=${from}&to=${to}`;
 
@@ -387,11 +460,11 @@ function parseVoiceInput(text) {
   const supplierMatch = text.match(/from\s+(.+)/i);
   if (supplierMatch) $('exp-supplier').value = supplierMatch[1].trim();
 
-    if (!$('exp-date').value) {
+  if (!$('exp-date').value) {
     $('exp-date').value = new Date().toISOString().split('T')[0];
   }
 
-   $('exp-notes').value = text;
+  $('exp-notes').value = text;
 }
 
 function clearExpenseForm() {
@@ -409,5 +482,8 @@ function clearInventoryForm() {
   $('inv-unit').value     = '';
 }
 
-
-
+window.addEventListener('pageshow', function(event) {
+  if (event.persisted) {
+    window.location.reload();
+  }
+});
