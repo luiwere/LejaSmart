@@ -53,3 +53,12 @@ func Accountantdashboard(w http.ResponseWriter, r *http.Request) {
 	}
 	tmpl.Execute(w, nil)
 }
+
+func OwnerDashboard(w http.ResponseWriter, r *http.Request) {
+    tmpl, err := template.ParseFiles("templates/owner-dashboard.html")
+    if err != nil {
+        http.Error(w, "Could not load page", http.StatusInternalServerError)
+        return
+    }
+    tmpl.Execute(w, nil)
+}
