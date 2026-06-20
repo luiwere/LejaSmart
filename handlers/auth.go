@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"net/http"
     "time"
+    "encoding/json"
 	"Digiledger/db"
     "github.com/mattn/go-sqlite3"
     "golang.org/x/crypto/bcrypt"
@@ -60,6 +61,8 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 
     if user.Role == "accountant" {
         http.Redirect(w, r, "/accountant", http.StatusSeeOther)
+    } else if user.Role == "owner"{
+        http.Redirect(w, r, "/owner", http.StatusSeeOther)
     } else {
         http.Redirect(w, r, "/vendor", http.StatusSeeOther)
     }
@@ -101,6 +104,22 @@ func RegisterPage(w http.ResponseWriter, r *http.Request) {
     }
         http.Redirect(w, r, "/", http.StatusSeeOther)
     }
+
+func Me(w http.ResponseWriter, r *http.Request) {
+    cookie, err := r.Cookie("session_user")
+    if err != nil {
+        http.Error(w, "Not logged in", http.StatusUnauthorized)
+        return
+    }
+
+    roleCookie, _ := r.Cookie("session_role")
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]string{
+        "id":   cookie.Value,
+        "role": roleCookie.Value,
+    })
+}
 
 func Logout(w http.ResponseWriter, r *http.Request) {
 
