@@ -40,6 +40,16 @@
         </select>
       </div>
 
+      <div class="form-group" id="shop-name-group">
+        <label for="shop_name">Shop name</label>
+        <input type="text" id="shop_name" name="shop_name" placeholder="Your shop name">
+      </div>
+
+      <div class="form-group hidden" id="shop-code-group">
+        <label for="shop_code">Shop code</label>
+        <input type="text" id="shop_code" name="shop_code" placeholder="Enter shop code">
+      </div>
+
       <button type="submit" class="btn-primary">Create Account</button>
 
       <p class="auth-footer">
@@ -50,6 +60,23 @@
     </div>
 
     <script>
+    const roleSelect = document.getElementById('role');
+    const shopNameGroup = document.getElementById('shop-name-group');
+    const shopCodeGroup = document.getElementById('shop-code-group');
+
+    function updateShopFields() {
+      if (roleSelect.value === 'accountant') {
+        shopNameGroup.classList.add('hidden');
+        shopCodeGroup.classList.remove('hidden');
+      } else {
+        shopNameGroup.classList.remove('hidden');
+        shopCodeGroup.classList.add('hidden');
+      }
+    }
+
+    roleSelect.addEventListener('change', updateShopFields);
+    updateShopFields();
+
     document.getElementById('register-form').addEventListener('submit', async function(e) {
     e.preventDefault();
 
@@ -57,7 +84,19 @@
     formData.append('username', document.getElementById('username').value);
     formData.append('email', document.getElementById('email').value);
     formData.append('password', document.getElementById('password').value);
-    formData.append('role', document.getElementById('role').value);
+    formData.append('role', roleSelect.value);
+    formData.append('shop_name', document.getElementById('shop_name').value);
+    formData.append('shop_code', document.getElementById('shop_code').value);
+
+    if ((roleSelect.value === 'vendor' || roleSelect.value === 'owner') && !document.getElementById('shop_name').value) {
+      alert('Please enter a shop name.');
+      return;
+    }
+
+    if (roleSelect.value === 'accountant' && !document.getElementById('shop_code').value) {
+      alert('Please enter the shop code for your accountant account.');
+      return;
+    }
 
     const res = await fetch('/register', {
       method: 'POST',
@@ -70,6 +109,10 @@
     }
 
     if (res.ok) {
+      const data = await res.json();
+      if (data.shop_code) {
+        alert('Your shop code is: ' + data.shop_code + '\nShare this with your accountant.');
+      }
       window.location.href = '/';
     } else {
       alert('Something went wrong. Please try again.');

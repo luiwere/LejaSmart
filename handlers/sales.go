@@ -11,7 +11,7 @@ func Sales(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		vendorID := r.URL.Query().Get("vendorID")
-		sales, err := db.GetSales(getSessionRole(r), vendorID)
+		sales, err := db.GetSales(getSessionRole(r), getSessionShopID(r), vendorID)
 		if err != nil {
 			http.Error(w, "Could not fetch sales", http.StatusInternalServerError)
 			return
@@ -30,7 +30,7 @@ func Sales(w http.ResponseWriter, r *http.Request) {
 			Notes     string  `json:"notes"`
 		}
 		json.NewDecoder(r.Body).Decode(&s)
-		err := db.AddSale(getSessionRole(r), s.VendorID, s.ItemName, s.Quantity, s.UnitPrice, s.UnitCost, s.Date, s.Notes)
+		err := db.AddSale(getSessionRole(r), getSessionShopID(r), s.VendorID, s.ItemName, s.Quantity, s.UnitPrice, s.UnitCost, s.Date, s.Notes)
 		if err != nil {
 			http.Error(w, "Could not save sale", http.StatusInternalServerError)
 			return
@@ -39,7 +39,7 @@ func Sales(w http.ResponseWriter, r *http.Request) {
 
 	case http.MethodDelete:
 		id := strings.TrimPrefix(r.URL.Path, "/sales/")
-		err := db.DeleteSale(getSessionRole(r), id)
+		err := db.DeleteSale(getSessionRole(r), getSessionShopID(r), id)
 		if err != nil {
 			http.Error(w, "Could not delete sale", http.StatusInternalServerError)
 			return

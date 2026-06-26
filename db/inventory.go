@@ -5,9 +5,9 @@ import (
     "Digiledger/models"
 )
 
-func GetInventory(role, vendorID string) ([]models.InventoryItem, error) {
+func GetInventory(role, shopID, vendorID string) ([]models.InventoryItem, error) {
     conn := DBForRole(role)
-    rows, err := conn.Query(`SELECT id, vendor_id, name, quantity, unit, updated_at FROM inventory WHERE vendor_id = ?`, vendorID)
+    rows, err := conn.Query(`SELECT id, vendor_id, name, quantity, unit, updated_at FROM inventory WHERE shop_id = ? AND vendor_id = ?`, shopID, vendorID)
     if err != nil {
         return nil, err
     }
@@ -22,13 +22,13 @@ func GetInventory(role, vendorID string) ([]models.InventoryItem, error) {
     return items, nil
 }
 
-func SaveInventoryItem(role, vendorID, name string, quantity float64, unit string) error {
+func SaveInventoryItem(role, shopID, vendorID, name string, quantity float64, unit string) error {
     conn := DBForRole(role)
     id := uuid.New().String()
     _, err := conn.Exec(
-        `INSERT OR REPLACE INTO inventory (id, vendor_id, name, quantity, unit, updated_at)
-         VALUES (?, ?, ?, ?, ?, datetime('now'))`,
-        id, vendorID, name, quantity, unit,
+        `INSERT OR REPLACE INTO inventory (id, vendor_id, shop_id, name, quantity, unit, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, datetime('now'))`,
+        id, vendorID, shopID, name, quantity, unit,
     )
     return err
 }

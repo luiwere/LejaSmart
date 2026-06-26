@@ -18,7 +18,7 @@ func ProfitAndLoss(w http.ResponseWriter, r *http.Request) {
 	from := r.URL.Query().Get("from")
 	to := r.URL.Query().Get("to")
 
-	summary, err := db.GetPnL(getSessionRole(r), vendorID, from, to)
+	summary, err := db.GetPnL(getSessionRole(r), getSessionShopID(r), vendorID, from, to)
 
 	if err != nil {
 		http.Error(w, "Could Not Calculate Profit&Loss", http.StatusInternalServerError)

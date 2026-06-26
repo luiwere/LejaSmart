@@ -6,15 +6,15 @@ import (
 	"github.com/google/uuid"
 )
 
-func GetSales(role, vendorID string) ([]models.Sale, error) {
+func GetSales(role, shopID, vendorID string) ([]models.Sale, error) {
 	conn := DBForRole(role)
 	var rows *sql.Rows
 	var err error
 
 	if vendorID == "" {
-		rows, err = conn.Query(`SELECT id, vendor_id, item_name, quantity, unit_price, unit_cost, date, notes, created_at FROM sales ORDER BY date DESC`)
+		rows, err = conn.Query(`SELECT id, vendor_id, item_name, quantity, unit_price, unit_cost, date, notes, created_at FROM sales WHERE shop_id = ? ORDER BY date DESC`, shopID)
 	} else {
-		rows, err = conn.Query(`SELECT id, vendor_id, item_name, quantity, unit_price, unit_cost, date, notes, created_at FROM sales WHERE vendor_id = ? ORDER BY date DESC`, vendorID)
+		rows, err = conn.Query(`SELECT id, vendor_id, item_name, quantity, unit_price, unit_cost, date, notes, created_at FROM sales WHERE shop_id = ? AND vendor_id = ? ORDER BY date DESC`, shopID, vendorID)
 	}
 	if err != nil {
 		return nil, err
@@ -30,18 +30,18 @@ func GetSales(role, vendorID string) ([]models.Sale, error) {
 	return sales, nil
 }
 
-func AddSale(role, vendorID, itemName string, quantity, unitPrice, unitCost float64, date, notes string) error {
+func AddSale(role, shopID, vendorID, itemName string, quantity, unitPrice, unitCost float64, date, notes string) error {
 	conn := DBForRole(role)
 	id := uuid.New().String()
 	_, err := conn.Exec(
-		`INSERT INTO sales (id, vendor_id, item_name, quantity, unit_price, unit_cost, date, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-		id, vendorID, itemName, quantity, unitPrice, unitCost, date, notes,
+		`INSERT INTO sales (id, vendor_id, shop_id, item_name, quantity, unit_price, unit_cost, date, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		id, vendorID, shopID, itemName, quantity, unitPrice, unitCost, date, notes,
 	)
 	return err
 }
 
-func DeleteSale(role, id string) error {
+func DeleteSale(role, shopID, id string) error {
 	conn := DBForRole(role)
-	_, err := conn.Exec(`DELETE FROM sales WHERE id = ?`, id)
+	_, err := conn.Exec(`DELETE FROM sales WHERE id = ? AND shop_id = ?`, id, shopID)
 	return err
 }
