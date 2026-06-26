@@ -109,50 +109,10 @@ if (window.location.pathname === '/vendor') {
 
     loadExpenses();
     loadInventory();
-    loadSales();
-    loadPnL();
     setupVoice();
 
     $('open-expense-form').addEventListener('click', () => show('expense-form'));
     $('cancel-expense').addEventListener('click', () => hide('expense-form'));
-
-    const openSaleForm = $('open-sale-form');
-    if (openSaleForm) {
-      openSaleForm.addEventListener('click', () => show('sale-form'));
-      $('cancel-sale').addEventListener('click', () => hide('sale-form'));
-      $('save-sale').addEventListener('click', async () => {
-        const id = await getVendorID();
-        const body = {
-          vendor_id:  id,
-          item_name:  $('sale-item').value.trim(),
-          quantity:   parseFloat($('sale-quantity').value),
-          unit_price: parseFloat($('sale-unit-price').value),
-          unit_cost:  parseFloat($('sale-unit-cost').value) || 0,
-          date:       $('sale-date').value,
-          notes:      $('sale-notes').value.trim(),
-        };
-
-        if (!body.item_name || !body.quantity || !body.unit_price || !body.date) {
-          alert('Please fill in item, quantity, price, and date.');
-          return;
-        }
-
-        const res = await fetch('/sales', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify(body),
-        });
-
-        if (res.ok) {
-          hide('sale-form');
-          clearSaleForm();
-          loadSales();
-          loadPnL($('pnl-from').value, $('pnl-to').value);
-        } else {
-          alert('Could not save sale. Please try again.');
-        }
-      });
-    }
 
     $('save-expense').addEventListener('click', async () => {
       const id = await getVendorID();
@@ -216,10 +176,6 @@ if (window.location.pathname === '/vendor') {
         alert('Could not save item. Please try again.');
       }
     });
-
-    $('pnl-filter-btn').addEventListener('click', () => {
-      loadPnL($('pnl-from').value, $('pnl-to').value);
-    });
   })();
 }
 
@@ -233,6 +189,7 @@ if (window.location.pathname === '/accountant') {
 
     loadAllVendors();
     loadAllExpenses();
+    loadAccountantSales();
     loadAccountantPnL();
 
     const openVendorForm = $('open-vendor-form');
@@ -272,8 +229,18 @@ if (window.location.pathname === '/accountant') {
     $('filter-expenses-btn').addEventListener('click', () => {
       const vendorID = $('filter-vendor').value;
       loadAllExpenses(vendorID);
+      loadAccountantSales(vendorID);
       loadAccountantPnL(vendorID);
     });
+
+    const filterSalesBtn = $('filter-sales-btn');
+    if (filterSalesBtn) {
+      filterSalesBtn.addEventListener('click', () => {
+        const vendorID = $('sales-vendor-filter')?.value || '';
+        loadAccountantSales(vendorID);
+        loadAccountantPnL(vendorID);
+      });
+    }
   })();
 }
 
@@ -519,6 +486,38 @@ async function loadAccountantPnL(vendorID = '') {
   }
 }
 
+async function loadAccountantSales(vendorID = '') {
+  let url = '/sales';
+  if (vendorID) {
+    url += `?vendorID=${vendorID}`;
+  }
+
+  const res = await fetch(url);
+  const data = await res.json();
+  const tbody = $('sales-table-body');
+  if (!tbody) return;
+
+  if (!data || data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">No sales found.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data.map(sale => {
+    const total = sale.quantity * sale.unit_price;
+    return `
+      <tr>
+        <td>${formatDate(sale.date)}</td>
+        <td>${sale.vendor_id}</td>
+        <td>${sale.item_name}</td>
+        <td>${sale.quantity}</td>
+        <td>${formatCurrency(sale.unit_price)}</td>
+        <td>${formatCurrency(sale.unit_cost || 0)}</td>
+        <td><strong>${formatCurrency(total)}</strong></td>
+      </tr>
+    `;
+  }).join('');
+}
+
 async function deleteSale(id) {
   if (!confirm('Delete this sale?')) return;
 
@@ -571,6 +570,12 @@ async function loadAllVendors() {
   if (select && data) {
     const options = data.map(v => `<option value="${v.id}">${v.name}</option>`).join('');
     select.innerHTML = `<option value="">All Vendors</option>` + options;
+  }
+
+  const salesSelect = $('sales-vendor-filter');
+  if (salesSelect && data) {
+    const options = data.map(v => `<option value="${v.id}">${v.name}</option>`).join('');
+    salesSelect.innerHTML = `<option value="">All Vendors</option>` + options;
   }
 }
 
