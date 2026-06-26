@@ -1,16 +1,19 @@
 package handlers
 
 import (
+	"Digiledger/db"
 	"encoding/json"
 	"net/http"
 	"strings"
-	"Digiledger/db"
 )
 
 func ProfitAndLoss(w http.ResponseWriter, r *http.Request) {
 
-	// Extract vendeoID from URL:/pnl/[vendorID]
+	// Extract vendorID from URL:/pnl/[vendorID]
 	vendorID := strings.TrimPrefix(r.URL.Path, "/pnl")
+	if strings.HasPrefix(vendorID, "/") {
+		vendorID = strings.TrimPrefix(vendorID, "/")
+	}
 
 	from := r.URL.Query().Get("from")
 	to := r.URL.Query().Get("to")

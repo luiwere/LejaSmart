@@ -30,6 +30,7 @@ func main() {
 	http.HandleFunc("/expenses/", handlers.Expenses)
 	http.HandleFunc("/inventory", handlers.Inventory)
 	http.HandleFunc("/pnl", handlers.ProfitAndLoss)
+	http.HandleFunc("/pnl/", handlers.ProfitAndLoss)
 	http.HandleFunc("/sales", handlers.Sales)
 	http.HandleFunc("/sales/", handlers.Sales)
 	http.HandleFunc("/vendors", handlers.Vendors)
