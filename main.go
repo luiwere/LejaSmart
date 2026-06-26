@@ -25,12 +25,15 @@ func main() {
 	http.HandleFunc("/me", handlers.Me)
 
 	http.HandleFunc("/owner", handlers.OwnerDashboard)
-	
+
 	http.HandleFunc("/expenses", handlers.Expenses)
-	http.HandleFunc("/inventory",handlers.Inventory)
+	http.HandleFunc("/expenses/", handlers.Expenses)
+	http.HandleFunc("/inventory", handlers.Inventory)
 	http.HandleFunc("/pnl", handlers.ProfitAndLoss)
+	http.HandleFunc("/sales", handlers.Sales)
+	http.HandleFunc("/sales/", handlers.Sales)
 	http.HandleFunc("/vendors", handlers.Vendors)
 
 	fmt.Println("Sever running on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080",nil))
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }

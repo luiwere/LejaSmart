@@ -135,6 +135,66 @@
         </div>
       </section>
 
+      <section id="sales" class="section">
+        <div class="section-header">
+          <h2>Sales</h2>
+          <button class="btn-primary" id="open-sale-form">+ Add Sale</button>
+        </div>
+
+        <div id="sale-form" class="card form-card hidden">
+          <h3>New Sale</h3>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Item Sold</label>
+              <input type="text" id="sale-item" placeholder="e.g. Roasted maize">
+            </div>
+            <div class="form-group">
+              <label>Quantity</label>
+              <input type="number" id="sale-quantity" placeholder="0">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Unit Price (KES)</label>
+              <input type="number" id="sale-unit-price" placeholder="0.00" step="0.01">
+            </div>
+            <div class="form-group">
+              <label>Unit Cost (KES)</label>
+              <input type="number" id="sale-unit-cost" placeholder="0.00" step="0.01">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" id="sale-date">
+            </div>
+            <div class="form-group">
+              <label>Notes</label>
+              <textarea id="sale-notes" placeholder="Optional notes..."></textarea>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn-secondary" id="cancel-sale">Cancel</button>
+            <button class="btn-primary" id="save-sale">Save Sale</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Item</th><th>Qty</th><th>Price</th><th>Cost</th><th>Total</th><th>Profit</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="sales-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
       <section id="pnl" class="section">
         <div class="section-header">
           <h2>Profit & Loss</h2>
@@ -148,8 +208,12 @@
 
         <div class="pnl-cards">
           <div class="pnl-card income">
-            <span class="pnl-label">Total Income</span>
-            <span class="pnl-value" id="pnl-income">KES 0.00</span>
+            <span class="pnl-label">Total Revenue</span>
+            <span class="pnl-value" id="pnl-revenue">KES 0.00</span>
+          </div>
+          <div class="pnl-card expenses">
+            <span class="pnl-label">Total COGS</span>
+            <span class="pnl-value" id="pnl-cogs">KES 0.00</span>
           </div>
           <div class="pnl-card expenses">
             <span class="pnl-label">Total Expenses</span>

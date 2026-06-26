@@ -96,6 +96,20 @@ func initDatabase(conn *sql.DB) {
 		created_at TEXT DEFAULT (datetime('now')),
 		FOREIGN KEY (vendor_id) REFERENCES vendors(id)
 	);`,
+
+	// Sales Table
+	`CREATE TABLE IF NOT EXISTS sales (
+		id TEXT PRIMARY KEY,
+		vendor_id TEXT NOT NULL,
+		item_name TEXT NOT NULL,
+		quantity REAL NOT NULL,
+		unit_price REAL NOT NULL,
+		unit_cost REAL,
+		date TEXT NOT NULL,
+		notes TEXT,
+		created_at TEXT DEFAULT (datetime('now')),
+		FOREIGN KEY (vendor_id) REFERENCES vendors(id)
+	);`,
 	}
 
 	for _, q := range queries {

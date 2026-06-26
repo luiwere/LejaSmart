@@ -1,32 +1,36 @@
 package db
 
 import (
-    "Digiledger/models"
+	"Digiledger/models"
 )
+
 func GetPnL(role, vendorID, from, to string) (models.PnLSummary, error) {
-    var summary models.PnLSummary
-    summary.From = from
-    summary.To = to
+	var summary models.PnLSummary
+	summary.From = from
+	summary.To = to
 
-    conn := DBForRole(role)
+	conn := DBForRole(role)
 
-    // Build date filter
-    dateFilter := ""
-    args := []interface{}{vendorID}
-    if from != "" && to != "" {
-        dateFilter = "AND date BETWEEN ? AND ?"
-        args = append(args, from, to)
-    }
+	// Build date filter
+	dateFilter := ""
+	args := []interface{}{vendorID}
+	if from != "" && to != "" {
+		dateFilter = "AND date BETWEEN ? AND ?"
+		args = append(args, from, to)
+	}
 
-    // Total expenses
-    expQuery := `SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE vendor_id = ? ` + dateFilter
-    conn.QueryRow(expQuery, args...).Scan(&summary.TotalExpenses)
+	// Total expenses
+	expQuery := `SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE vendor_id = ? ` + dateFilter
+	conn.QueryRow(expQuery, args...).Scan(&summary.TotalExpenses)
 
-    // Total income
-    incQuery := `SELECT COALESCE(SUM(amount), 0) FROM income WHERE vendor_id = ? ` + dateFilter
-    conn.QueryRow(incQuery, args...).Scan(&summary.TotalIncome)
+	// Total revenue is derived from sales quantity × unit price only
+	var salesRevenue float64
+	salesQuery := `SELECT COALESCE(SUM(quantity * unit_price), 0), COALESCE(SUM(quantity * COALESCE(unit_cost, 0)), 0) FROM sales WHERE vendor_id = ? ` + dateFilter
+	conn.QueryRow(salesQuery, args...).Scan(&salesRevenue, &summary.TotalCOGS)
 
-    summary.Profit = summary.TotalIncome - summary.TotalExpenses
+	summary.TotalRevenue = salesRevenue
+	summary.GrossProfit = summary.TotalRevenue - summary.TotalCOGS
+	summary.NetProfit = summary.GrossProfit - summary.TotalExpenses
 
-    return summary, nil
+	return summary, nil
 }

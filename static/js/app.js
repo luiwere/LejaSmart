@@ -41,11 +41,50 @@ if (window.location.pathname === '/vendor') {
 
     loadExpenses();
     loadInventory();
+    loadSales();
     loadPnL();
     setupVoice();
 
     $('open-expense-form').addEventListener('click', () => show('expense-form'));
     $('cancel-expense').addEventListener('click', () => hide('expense-form'));
+
+    const openSaleForm = $('open-sale-form');
+    if (openSaleForm) {
+      openSaleForm.addEventListener('click', () => show('sale-form'));
+      $('cancel-sale').addEventListener('click', () => hide('sale-form'));
+      $('save-sale').addEventListener('click', async () => {
+        const id = await getVendorID();
+        const body = {
+          vendor_id:  id,
+          item_name:  $('sale-item').value.trim(),
+          quantity:   parseFloat($('sale-quantity').value),
+          unit_price: parseFloat($('sale-unit-price').value),
+          unit_cost:  parseFloat($('sale-unit-cost').value) || 0,
+          date:       $('sale-date').value,
+          notes:      $('sale-notes').value.trim(),
+        };
+
+        if (!body.item_name || !body.quantity || !body.unit_price || !body.date) {
+          alert('Please fill in item, quantity, price, and date.');
+          return;
+        }
+
+        const res = await fetch('/sales', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(body),
+        });
+
+        if (res.ok) {
+          hide('sale-form');
+          clearSaleForm();
+          loadSales();
+          loadPnL($('pnl-from').value, $('pnl-to').value);
+        } else {
+          alert('Could not save sale. Please try again.');
+        }
+      });
+    }
 
     $('save-expense').addEventListener('click', async () => {
       const id = await getVendorID();
@@ -166,6 +205,7 @@ if (window.location.pathname === '/owner') {
 
     loadExpenses();
     loadInventory();
+    loadSales();
     loadPnL();
     loadAllVendors();
     loadAllExpenses();
@@ -173,6 +213,44 @@ if (window.location.pathname === '/owner') {
 
     $('open-expense-form').addEventListener('click', () => show('expense-form'));
     $('cancel-expense').addEventListener('click', () => hide('expense-form'));
+
+    const openSaleForm = $('open-sale-form');
+    if (openSaleForm) {
+      openSaleForm.addEventListener('click', () => show('sale-form'));
+      $('cancel-sale').addEventListener('click', () => hide('sale-form'));
+      $('save-sale').addEventListener('click', async () => {
+        const id = await getVendorID();
+        const body = {
+          vendor_id:  id,
+          item_name:  $('sale-item').value.trim(),
+          quantity:   parseFloat($('sale-quantity').value),
+          unit_price: parseFloat($('sale-unit-price').value),
+          unit_cost:  parseFloat($('sale-unit-cost').value) || 0,
+          date:       $('sale-date').value,
+          notes:      $('sale-notes').value.trim(),
+        };
+
+        if (!body.item_name || !body.quantity || !body.unit_price || !body.date) {
+          alert('Please fill in item, quantity, price, and date.');
+          return;
+        }
+
+        const res = await fetch('/sales', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(body),
+        });
+
+        if (res.ok) {
+          hide('sale-form');
+          clearSaleForm();
+          loadSales();
+          loadPnL($('pnl-from').value, $('pnl-to').value);
+        } else {
+          alert('Could not save sale. Please try again.');
+        }
+      });
+    }
 
     $('save-expense').addEventListener('click', async () => {
       const id = await getVendorID();
@@ -295,6 +373,38 @@ async function loadInventory() {
   `).join('');
 }
 
+async function loadSales() {
+  const vendorID = await getVendorID();
+  const res = await fetch(`/sales?vendorID=${vendorID}`);
+  const data = await res.json();
+  const tbody = $('sales-table-body');
+  if (!tbody) return;
+
+  if (!data || data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">No sales recorded yet.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data.map(sale => {
+    const total = sale.quantity * sale.unit_price;
+    const costTotal = sale.quantity * (sale.unit_cost || 0);
+    const profit = total - costTotal;
+
+    return `
+      <tr>
+        <td>${formatDate(sale.date)}</td>
+        <td>${sale.item_name}</td>
+        <td>${sale.quantity}</td>
+        <td>${formatCurrency(sale.unit_price)}</td>
+        <td>${formatCurrency(sale.unit_cost || 0)}</td>
+        <td><strong>${formatCurrency(total)}</strong></td>
+        <td>${formatCurrency(profit)}</td>
+        <td><button class="delete-btn" onclick="deleteSale('${sale.id}')">🗑</button></td>
+      </tr>
+    `;
+  }).join('');
+}
+
 async function loadPnL(from = '', to = '') {
   const vendorID = await getVendorID();
   let url = `/pnl/${vendorID}`;
@@ -303,14 +413,35 @@ async function loadPnL(from = '', to = '') {
   const res     = await fetch(url);
   const summary = await res.json();
 
-  if ($('pnl-income'))   $('pnl-income').textContent   = formatCurrency(summary.total_income);
+  if ($('pnl-revenue'))  $('pnl-revenue').textContent  = formatCurrency(summary.total_revenue);
+  if ($('pnl-cogs'))     $('pnl-cogs').textContent     = formatCurrency(summary.total_cogs);
   if ($('pnl-expenses')) $('pnl-expenses').textContent = formatCurrency(summary.total_expenses);
 
-  const profitEl = $('pnl-profit');
-  if (profitEl) {
-    profitEl.textContent = formatCurrency(summary.profit);
-    profitEl.style.color = summary.profit >= 0 ? '#52b788' : 'var(--danger)';
+  if ($('pnl-profit')) {
+    $('pnl-profit').textContent = formatCurrency(summary.net_profit);
+    $('pnl-profit').style.color = summary.net_profit >= 0 ? '#52b788' : 'var(--danger)';
   }
+}
+
+async function deleteSale(id) {
+  if (!confirm('Delete this sale?')) return;
+
+  const res = await fetch(`/sales/${id}`, { method: 'DELETE' });
+  if (res.ok) {
+    loadSales();
+    loadPnL($('pnl-from').value, $('pnl-to').value);
+  } else {
+    alert('Could not delete sale.');
+  }
+}
+
+function clearSaleForm() {
+  $('sale-item').value       = '';
+  $('sale-quantity').value   = '';
+  $('sale-unit-price').value = '';
+  $('sale-unit-cost').value  = '';
+  $('sale-date').value       = '';
+  $('sale-notes').value      = '';
 }
 
 async function loadAllVendors() {
