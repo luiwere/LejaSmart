@@ -18,14 +18,43 @@ function categoryBadge(cat) {
 }
 
 let currentUserID = null;
+let currentUserRole = '';
+let currentUserShopID = '';
+let currentUserShopName = '';
+let currentUserShopCode = '';
+
+async function getSessionInfo() {
+  if (currentUserID) {
+    return {
+      id: currentUserID,
+      role: currentUserRole,
+      shopID: currentUserShopID,
+      shopName: currentUserShopName,
+      shopCode: currentUserShopCode,
+    };
+  }
+
+  const res = await fetch('/me');
+  if (!res.ok) return { id: '', role: '', shopID: '', shopName: '', shopCode: '' };
+
+  const data = await res.json();
+  currentUserID = data.id || '';
+  currentUserRole = data.role || '';
+  currentUserShopID = data.shop_id || '';
+  currentUserShopName = data.shop_name || '';
+  currentUserShopCode = data.shop_code || '';
+  return {
+    id: currentUserID,
+    role: currentUserRole,
+    shopID: currentUserShopID,
+    shopName: currentUserShopName,
+    shopCode: currentUserShopCode,
+  };
+}
 
 async function getVendorID() {
-  if (currentUserID) return currentUserID;
-  const res = await fetch('/me');
-  if (!res.ok) return '';
-  const data = await res.json();
-  currentUserID = data.id;
-  return currentUserID;
+  const info = await getSessionInfo();
+  return info.id;
 }
 
 const logoutBtn = $('logout-btn');
@@ -38,6 +67,45 @@ if (logoutBtn) {
 if (window.location.pathname === '/vendor') {
   (async () => {
     const vendorID = await getVendorID();
+    const sessionInfo = await getSessionInfo();
+
+    if (sessionInfo.shopName) {
+      const shopNameLabel = $('shop-name');
+      if (shopNameLabel) shopNameLabel.textContent = sessionInfo.shopName;
+    }
+
+    if (sessionInfo.shopCode) {
+      const shopIDValue = $('shop-id-value');
+      if (shopIDValue) shopIDValue.textContent = sessionInfo.shopCode;
+    }
+
+    const copyShopIDBtn = $('copy-shop-id');
+    if (copyShopIDBtn) {
+      copyShopIDBtn.addEventListener('click', async () => {
+        const shopID = $('shop-id-value')?.textContent || '';
+        if (!shopID) return;
+
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(shopID);
+          } else {
+            const textarea = document.createElement('textarea');
+            textarea.value = shopID;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+          }
+
+          copyShopIDBtn.textContent = 'Copied!';
+          setTimeout(() => {
+            copyShopIDBtn.textContent = 'Copy';
+          }, 1500);
+        } catch (err) {
+          alert('Could not copy shop ID. Please try again.');
+        }
+      });
+    }
 
     loadExpenses();
     loadInventory();
@@ -156,47 +224,57 @@ if (window.location.pathname === '/vendor') {
 }
 
 if (window.location.pathname === '/accountant') {
-  loadAllVendors();
-  loadAllExpenses();
+  (async () => {
+    const sessionInfo = await getSessionInfo();
+    if (sessionInfo.shopName) {
+      const shopNameLabel = $('shop-name');
+      if (shopNameLabel) shopNameLabel.textContent = sessionInfo.shopName;
+    }
 
-  const openVendorForm = $('open-vendor-form');
-  if (openVendorForm) {
-    openVendorForm.addEventListener('click', () => show('vendor-form'));
-    $('cancel-vendor').addEventListener('click', () => hide('vendor-form'));
+    loadAllVendors();
+    loadAllExpenses();
+    loadAccountantPnL();
 
-    $('save-vendor').addEventListener('click', async () => {
-      const body = {
-        name:  $('v-name').value.trim(),
-        email: $('v-email').value.trim(),
-        role:  'vendor',
-      };
+    const openVendorForm = $('open-vendor-form');
+    if (openVendorForm) {
+      openVendorForm.addEventListener('click', () => show('vendor-form'));
+      $('cancel-vendor').addEventListener('click', () => hide('vendor-form'));
 
-      if (!body.name || !body.email) {
-        alert('Please fill in name and email.');
-        return;
-      }
+      $('save-vendor').addEventListener('click', async () => {
+        const body = {
+          name:  $('v-name').value.trim(),
+          email: $('v-email').value.trim(),
+          role:  'vendor',
+        };
 
-      const res = await fetch('/vendors', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(body),
+        if (!body.name || !body.email) {
+          alert('Please fill in name and email.');
+          return;
+        }
+
+        const res = await fetch('/vendors', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(body),
+        });
+
+        if (res.ok) {
+          hide('vendor-form');
+          $('v-name').value = '';
+          $('v-email').value = '';
+          loadAllVendors();
+        } else {
+          alert('Could not save vendor.');
+        }
       });
+    }
 
-      if (res.ok) {
-        hide('vendor-form');
-        $('v-name').value = '';
-        $('v-email').value = '';
-        loadAllVendors();
-      } else {
-        alert('Could not save vendor.');
-      }
+    $('filter-expenses-btn').addEventListener('click', () => {
+      const vendorID = $('filter-vendor').value;
+      loadAllExpenses(vendorID);
+      loadAccountantPnL(vendorID);
     });
-  }
-
-  $('filter-expenses-btn').addEventListener('click', () => {
-    const vendorID = $('filter-vendor').value;
-    loadAllExpenses(vendorID);
-  });
+  })();
 }
 
 if (window.location.pathname === '/owner') {
@@ -420,6 +498,24 @@ async function loadPnL(from = '', to = '') {
   if ($('pnl-profit')) {
     $('pnl-profit').textContent = formatCurrency(summary.net_profit);
     $('pnl-profit').style.color = summary.net_profit >= 0 ? '#52b788' : 'var(--danger)';
+  }
+}
+
+async function loadAccountantPnL(vendorID = '') {
+  let url = '/pnl';
+  if (vendorID) {
+    url = `/pnl/${vendorID}`;
+  }
+
+  const res = await fetch(url);
+  const summary = await res.json();
+
+  if ($('acct-revenue'))      $('acct-revenue').textContent      = formatCurrency(summary.total_revenue);
+  if ($('acct-cogs'))         $('acct-cogs').textContent         = formatCurrency(summary.total_cogs);
+  if ($('acct-gross-profit')) $('acct-gross-profit').textContent = formatCurrency(summary.gross_profit);
+  if ($('acct-net-profit')) {
+    $('acct-net-profit').textContent = formatCurrency(summary.net_profit);
+    $('acct-net-profit').style.color = summary.net_profit >= 0 ? '#52b788' : 'var(--danger)';
   }
 }
 

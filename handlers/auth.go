@@ -100,8 +100,8 @@ func RegisterPage(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if role != "accountant" && shopName == "" {
-			http.Error(w, "Shop name is required", http.StatusBadRequest)
+		if role == "vendor" && shopName == "" {
+			http.Error(w, "Shop name is required for vendor", http.StatusBadRequest)
 			return
 		}
 
@@ -138,20 +138,27 @@ func Me(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	shopName := ""
+	shopCode := ""
+	if user.ShopID != "" {
+		name, err := db.GetShopNameByID(user.ShopID)
+		if err == nil {
+			shopName = name
+		}
+		code, err := db.GetShopCodeByID(user.ShopID)
+		if err == nil {
+			shopCode = code
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
-		"id":      user.ID,
-		"role":    user.Role,
-		"shop_id": user.ShopID,
+		"id":        user.ID,
+		"role":      user.Role,
+		"shop_id":   user.ShopID,
+		"shop_name": shopName,
+		"shop_code": shopCode,
 	})
-}
-
-func getSessionRole(r *http.Request) string {
-	roleCookie, err := r.Cookie("session_role")
-	if err != nil {
-		return ""
-	}
-	return roleCookie.Value
 }
 
 func getSessionUserID(r *http.Request) string {
@@ -160,6 +167,14 @@ func getSessionUserID(r *http.Request) string {
 		return ""
 	}
 	return cookie.Value
+}
+
+func getSessionRole(r *http.Request) string {
+	roleCookie, err := r.Cookie("session_role")
+	if err != nil {
+		return ""
+	}
+	return roleCookie.Value
 }
 
 func getSessionShopID(r *http.Request) string {
@@ -176,17 +191,17 @@ func getSessionShopID(r *http.Request) string {
 
 func Logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
-		Name:     "session_user",
-		Value:    "",
-		Expires:  time.Now().Add(-1 * time.Hour),
-		Path:     "/",
+		Name:    "session_user",
+		Value:   "",
+		Expires: time.Now().Add(-1 * time.Hour),
+		Path:    "/",
 	})
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     "session_role",
-		Value:    "",
-		Expires:  time.Now().Add(-1 * time.Hour),
-		Path:     "/",
+		Name:    "session_role",
+		Value:   "",
+		Expires: time.Now().Add(-1 * time.Hour),
+		Path:    "/",
 	})
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

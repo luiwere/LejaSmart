@@ -28,7 +28,18 @@
     <!-- Header -->
     <header class="dashboard-header">
       <h1>My Dashboard</h1>
-      <span id="vendor-name" class="vendor-label"></span>
+      <div class="dashboard-header-right">
+        <div class="shop-details">
+          <span id="shop-name" class="shop-name">Shop Name</span>
+          <div class="shop-id-box">
+            <div class="shop-id-row">
+              <span class="shop-id-label">Shop ID:</span>
+              <code id="shop-id-value" class="shop-id-value">—</code>
+              <button id="copy-shop-id" class="btn-copy" type="button">Copy</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </header>
 
     <!-- ── EXPENSES SECTION ── -->

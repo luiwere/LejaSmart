@@ -68,8 +68,11 @@
       if (roleSelect.value === 'accountant') {
         shopNameGroup.classList.add('hidden');
         shopCodeGroup.classList.remove('hidden');
-      } else {
+      } else if (roleSelect.value === 'vendor') {
         shopNameGroup.classList.remove('hidden');
+        shopCodeGroup.classList.add('hidden');
+      } else {
+        shopNameGroup.classList.add('hidden');
         shopCodeGroup.classList.add('hidden');
       }
     }
@@ -88,7 +91,7 @@
     formData.append('shop_name', document.getElementById('shop_name').value);
     formData.append('shop_code', document.getElementById('shop_code').value);
 
-    if ((roleSelect.value === 'vendor' || roleSelect.value === 'owner') && !document.getElementById('shop_name').value) {
+    if (roleSelect.value === 'vendor' && !document.getElementById('shop_name').value) {
       alert('Please enter a shop name.');
       return;
     }

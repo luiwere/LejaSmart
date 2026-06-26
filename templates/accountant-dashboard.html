@@ -27,6 +27,9 @@
 
     <header class="dashboard-header">
       <h1>Accountant Dashboard</h1>
+      <div class="dashboard-header-right">
+        <span id="shop-name" class="shop-name">Shop Name</span>
+      </div>
     </header>
 
     <!-- ── OVERVIEW SECTION ── -->
@@ -37,13 +40,25 @@
           <span class="pnl-label">Total Vendors</span>
           <span class="pnl-value" id="total-vendors">0</span>
         </div>
+        <div class="pnl-card income">
+          <span class="pnl-label">Total Revenue</span>
+          <span class="pnl-value" id="acct-revenue">KES 0.00</span>
+        </div>
         <div class="pnl-card expenses">
-          <span class="pnl-label">Total Expenses (All)</span>
+          <span class="pnl-label">Total COGS</span>
+          <span class="pnl-value" id="acct-cogs">KES 0.00</span>
+        </div>
+        <div class="pnl-card expenses">
+          <span class="pnl-label">Total Expenses</span>
           <span class="pnl-value" id="total-expenses">KES 0.00</span>
         </div>
         <div class="pnl-card profit">
-          <span class="pnl-label">Total Profit (All)</span>
-          <span class="pnl-value" id="total-profit">KES 0.00</span>
+          <span class="pnl-label">Gross Profit</span>
+          <span class="pnl-value" id="acct-gross-profit">KES 0.00</span>
+        </div>
+        <div class="pnl-card profit">
+          <span class="pnl-label">Net Profit</span>
+          <span class="pnl-value" id="acct-net-profit">KES 0.00</span>
         </div>
       </div>
     </section>
