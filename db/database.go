@@ -7,29 +7,40 @@ import (
 )
 
 var DB *sql.DB
+var OwnerDB *sql.DB
+
+const (
+	SharedDBPath = "./Digiledgerledger.db"
+	OwnerDBPath  = "./Digiledgerowner.db"
+)
 
 func Init() {
 	var err error
 
-	// Create or Open the SQLite Database file
-	DB, err = sql.Open("sqlite3", "./Digiledgerledger.db")
+	// Open shared database for vendors and accountants
+	DB, err = sql.Open("sqlite3", SharedDBPath)
 	if err != nil {
-		log.Fatal("Could not open Database:", err)
+		log.Fatal("Could not open shared Database:", err)
 	}
-
-	// Test Connection
-
 	if err = DB.Ping(); err != nil {
-		log.Fatal("Could not connect to te Database:", err)
+		log.Fatal("Could not connect to shared Database:", err)
 	}
+	initDatabase(DB)
 
-	// Create the tables
-	createTables()
-	log.Println("Database connected and ready")
+	// Open owner-specific database
+	OwnerDB, err = sql.Open("sqlite3", OwnerDBPath)
+	if err != nil {
+		log.Fatal("Could not open owner Database:", err)
+	}
+	if err = OwnerDB.Ping(); err != nil {
+		log.Fatal("Could not connect to owner Database:", err)
+	}
+	initDatabase(OwnerDB)
 
+	log.Println("Shared and owner databases connected and ready")
 }
 
-func createTables() {
+func initDatabase(conn *sql.DB) {
 	queries := []string{
 
 	// Vendors Table
@@ -45,7 +56,7 @@ func createTables() {
 	`CREATE TABLE IF NOT EXISTS users (
 	id TEXT PRIMARY KEY,
 	username TEXT NOT NULL,
-	email TEXT NOT NULL,
+	email TEXT UNIQUE NOT NULL,
 	password TEXT NOT NULL,
 	role TEXT NOT NULL DEFAULT 'vendor',
 	created_at TEXT DEFAULT (datetime('now'))
@@ -62,7 +73,6 @@ func createTables() {
 		notes TEXT,
 		created_at TEXT DEFAULT (datetime('now')),
 		FOREIGN KEY (vendor_id) REFERENCES vendors(id)
-
 	);`,
 
 	// Inventory Table
@@ -76,7 +86,7 @@ func createTables() {
 		FOREIGN KEY (vendor_id) REFERENCES vendors(id)
 	);`,
 
-	// Income Timetable
+	// Income Table
 	`CREATE TABLE IF NOT EXISTS income (
 		id TEXT PRIMARY KEY,
 		vendor_id TEXT NOT NULL,
@@ -84,15 +94,29 @@ func createTables() {
 		date TEXT NOT NULL,
 		notes TEXT,
 		created_at TEXT DEFAULT (datetime('now')),
-		FOREIGN KEY (vendor_id) REFERENCES vendorS(id)
-
+		FOREIGN KEY (vendor_id) REFERENCES vendors(id)
 	);`,
 	}
 
 	for _, q := range queries {
-		_, err := DB.Exec(q)
+		_, err := conn.Exec(q)
 		if err != nil {
-			log.Fatal("coult not create Table:", err)
+			log.Fatal("could not create table:", err)
 		}
 	}
+}
+
+func DBForRole(role string) *sql.DB {
+	if role == "owner" {
+		return OwnerDB
+	}
+	return DB
+}
+
+func DBForEmail(email string) *sql.DB {
+	var u struct{ ID string }
+	if err := OwnerDB.QueryRow(`SELECT id FROM users WHERE email = ?`, email).Scan(&u.ID); err == nil {
+		return OwnerDB
+	}
+	return DB
 }

@@ -12,7 +12,7 @@ func Expenses(w http.ResponseWriter, r *http.Request) {
 
 	case http.MethodGet:
 		vendorID := r.URL.Query().Get("vendorID")
-		expenses, err := db.GetExpenses(vendorID)
+		expenses, err := db.GetExpenses(getSessionRole(r), vendorID)
 		if err != nil {
 			http.Error(w, "Could not Fetch Expenses", http.StatusInternalServerError)
 			return
@@ -30,7 +30,7 @@ func Expenses(w http.ResponseWriter, r *http.Request) {
 			Notes string `json:"notes"`
 		}
 		json.NewDecoder(r.Body).Decode(&e)
-		err := db.AddExpense(e.VendorID, e.Amount, e.Date, e.Category, e.SupplierName, e.Notes)
+		err := db.AddExpense(getSessionRole(r), e.VendorID, e.Amount, e.Date, e.Category, e.SupplierName, e.Notes)
 		if err != nil {
 			http.Error(w, "Could not save Expense", http.StatusInternalServerError)
 			return
@@ -39,7 +39,7 @@ func Expenses(w http.ResponseWriter, r *http.Request) {
 
 	case http.MethodDelete:
 		id := strings.TrimPrefix(r.URL.Path, "/expenses/")
-		err := db.DeleteExpense(id)
+		err := db.DeleteExpense(getSessionRole(r), id)
 		if err != nil {
 			http.Error(w, "Could not delete expense", http.StatusInternalServerError)
 			return

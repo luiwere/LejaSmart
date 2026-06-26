@@ -12,7 +12,7 @@ func Vendors(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 
 	case http.MethodGet:
-		vendors, err := db.GetAllVendors()
+		vendors, err := db.GetAllVendors(getSessionRole(r))
 		if err != nil {
 			http.Error(w, "Could not Fetch vendors", http.StatusInternalServerError)
 			return
@@ -27,7 +27,7 @@ func Vendors(w http.ResponseWriter, r *http.Request) {
 			Role  string `json:"role"`
 		}
 		json.NewDecoder(r.Body).Decode(&v)
-		err := db.CreateVendor(v.Name, v.Email, v.Role)
+		err := db.CreateVendor(getSessionRole(r), v.Name, v.Email, v.Role)
 		if err != nil {
 			http.Error(w, "Could not create Vendor", http.StatusInternalServerError)
 			return

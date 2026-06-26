@@ -3,10 +3,12 @@ package db
 import (
     "Digiledger/models"
 )
-func GetPnL(vendorID, from, to string) (models.PnLSummary, error) {
+func GetPnL(role, vendorID, from, to string) (models.PnLSummary, error) {
     var summary models.PnLSummary
     summary.From = from
     summary.To = to
+
+    conn := DBForRole(role)
 
     // Build date filter
     dateFilter := ""
@@ -18,11 +20,11 @@ func GetPnL(vendorID, from, to string) (models.PnLSummary, error) {
 
     // Total expenses
     expQuery := `SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE vendor_id = ? ` + dateFilter
-    DB.QueryRow(expQuery, args...).Scan(&summary.TotalExpenses)
+    conn.QueryRow(expQuery, args...).Scan(&summary.TotalExpenses)
 
     // Total income
     incQuery := `SELECT COALESCE(SUM(amount), 0) FROM income WHERE vendor_id = ? ` + dateFilter
-    DB.QueryRow(incQuery, args...).Scan(&summary.TotalIncome)
+    conn.QueryRow(incQuery, args...).Scan(&summary.TotalIncome)
 
     summary.Profit = summary.TotalIncome - summary.TotalExpenses
 

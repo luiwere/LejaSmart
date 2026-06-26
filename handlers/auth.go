@@ -121,6 +121,14 @@ func Me(w http.ResponseWriter, r *http.Request) {
     })
 }
 
+func getSessionRole(r *http.Request) string {
+    roleCookie, err := r.Cookie("session_role")
+    if err != nil {
+        return ""
+    }
+    return roleCookie.Value
+}
+
 func Logout(w http.ResponseWriter, r *http.Request) {
 
     http.SetCookie(w, &http.Cookie{

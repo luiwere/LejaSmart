@@ -13,7 +13,7 @@ func Inventory(w http.ResponseWriter, r *http.Request) {
 		// GET - Fetch Invntory from a vendor
 	case http.MethodGet:
 		vendorID := r.URL.Query().Get("vendorID")
-		items, err := db.GetInventory(vendorID)
+		items, err := db.GetInventory(getSessionRole(r), vendorID)
 		if err != nil {
 			http.Error(w, "Could not Fetch Inventoty", http.StatusInternalServerError)
 			return
@@ -31,7 +31,7 @@ func Inventory(w http.ResponseWriter, r *http.Request) {
 			Unit string `json:"unit"`
 		}
 		json.NewDecoder(r.Body).Decode(&item)
-		err := db.SaveInventoryItem(item.VendorID, item.Name, item.Quantity, item.Unit)
+		err := db.SaveInventoryItem(getSessionRole(r), item.VendorID, item.Name, item.Quantity, item.Unit)
 		if err != nil {
 		http.Error(w , "Could not add item to Inventoyr", http.StatusInternalServerError)
 		return
