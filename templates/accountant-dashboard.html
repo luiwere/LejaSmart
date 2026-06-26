@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>VendorLedger — Accountant Dashboard</title>
   <link rel="stylesheet" href="/static/css/style.css">
 </head>
@@ -126,5 +129,26 @@
   </main>
 
   <script src="/static/js/app.js"></script>
+  <script>
+    window.addEventListener('pageshow', function(event) {
+      if (event.persisted) {
+        // Check if user is still authenticated when returning via back button
+        fetch('/me')
+          .then(res => {
+            if (!res.ok) {
+              // User is not authenticated, redirect to login
+              window.location.href = '/login';
+            } else {
+              // User is authenticated, reload the page
+              window.location.reload();
+            }
+          })
+          .catch(() => {
+            // If fetch fails, redirect to login for safety
+            window.location.href = '/login';
+          });
+      }
+    });
+  </script>
 </body>
 </html>
