@@ -30,11 +30,6 @@
       <span id="owner-name" class="vendor-label"></span>
     </header>
 
-    <div class="tab-switcher">
-      <button class="tab-btn active" data-target="vendor-view">My Business</button>
-      <button class="tab-btn" data-target="accountant-view">All Vendors</button>
-    </div>
-
     <div id="vendor-view" class="tab-content active">
 
       <section id="expenses" class="section">
@@ -227,100 +222,21 @@
       </section>
     </div>
 
-    <div id="accountant-view" class="tab-content">
-
-      <section id="overview" class="section">
-        <h2>Overview</h2>
-        <div class="pnl-cards">
-          <div class="pnl-card income">
-            <span class="pnl-label">Total Vendors</span>
-            <span class="pnl-value" id="total-vendors">0</span>
-          </div>
-          <div class="pnl-card expenses">
-            <span class="pnl-label">Total Expenses (All)</span>
-            <span class="pnl-value" id="total-expenses">KES 0.00</span>
-          </div>
-        </div>
-      </section>
-
-      <section id="vendors" class="section">
-        <div class="section-header">
-          <h2>Vendors</h2>
-        </div>
-        <div class="card">
-          <table class="data-table">
-            <thead>
-              <tr><th>Name</th><th>Email</th><th>Joined</th><th>Action</th></tr>
-            </thead>
-            <tbody id="vendors-table-body"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section id="all-expenses" class="section">
-        <div class="section-header">
-          <h2>All Expenses</h2>
-          <div class="date-filter">
-            <select id="filter-vendor">
-              <option value="">All Vendors</option>
-            </select>
-            <button class="btn-primary" id="filter-expenses-btn">Filter</button>
-          </div>
-        </div>
-        <div class="card">
-          <table class="data-table">
-            <thead>
-              <tr><th>Date</th><th>Vendor</th><th>Supplier</th><th>Category</th><th>Amount</th><th>Notes</th></tr>
-            </thead>
-            <tbody id="all-expenses-table-body"></tbody>
-          </table>
-        </div>
-      </section>
-    </div>
-
   </main>
 
   <script src="/static/js/app.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Tab switching
-      const tabButtons = document.querySelectorAll('.tab-btn');
-      const tabContents = document.querySelectorAll('.tab-content');
-
-      tabButtons.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-          e.preventDefault();
-          
-          // Remove active class from all buttons and contents
-          tabButtons.forEach(b => b.classList.remove('active'));
-          tabContents.forEach(c => c.classList.remove('active'));
-          
-          // Add active class to clicked button and corresponding content
-          btn.classList.add('active');
-          const targetId = btn.getAttribute('data-target');
-          const targetContent = document.getElementById(targetId);
-          if (targetContent) {
-            targetContent.classList.add('active');
-          }
-        });
-      });
-    });
-
     window.addEventListener('pageshow', function(event) {
       if (event.persisted) {
-        // Check if user is still authenticated when returning via back button
         fetch('/me')
           .then(res => {
             if (!res.ok) {
-              // User is not authenticated, redirect to login
               window.location.href = '/login';
             } else {
-              // User is authenticated, reload the page
               window.location.reload();
             }
           })
           .catch(() => {
-            // If fetch fails, redirect to login for safety
             window.location.href = '/login';
           });
       }
