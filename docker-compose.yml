@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  digiledger:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data/Digiledgerledger.db:/app/Digiledgerledger.db
+      - ./data/Digiledgerowner.db:/app/Digiledgerowner.db
+    restart: unless-stopped
