@@ -368,6 +368,43 @@ DigiLedger uses **cookie-based session management**:
 - [ ] Docker deployment setup
 - [ ] Unit tests for all handlers and db functions
 
+## Docker
+
+Run the app with Docker (multi-stage build with SQLite support):
+
+1. Create a data directory for the SQLite files (persisted on host):
+
+```bash
+mkdir -p data
+touch data/Digiledgerledger.db data/Digiledgerowner.db
+```
+
+2. Build the Docker image:
+
+```bash
+docker build -t digiledger:latest .
+```
+
+3. Run with Docker (bind mounts persist DB files):
+
+```bash
+docker run --rm -p 8080:8080 \
+  -v "$PWD/data/Digiledgerledger.db":/app/Digiledgerledger.db \
+  -v "$PWD/data/Digiledgerowner.db":/app/Digiledgerowner.db \
+  digiledger:latest
+```
+
+Or use `docker compose` (included):
+
+```bash
+docker compose up --build
+```
+
+Notes:
+- The image includes the system SQLite library so `go-sqlite3` works at runtime.
+- If you prefer not to build locally, you can run inside the container via the provided `docker-compose.yml`.
+
+
 ---
 
 ## Contributing
