@@ -151,10 +151,15 @@ if (window.location.pathname === '/vendor') {
     $('save-inventory').addEventListener('click', async () => {
       const id = await getVendorID();
       const body = {
-        vendor_id: id,
-        name:      $('inv-name').value.trim(),
-        quantity:  parseFloat($('inv-quantity').value),
-        unit:      $('inv-unit').value.trim(),
+        vendor_id:     id,
+        name:          $('inv-name').value.trim(),
+        supplier_name: $('inv-supplier').value.trim(),
+        status:        $('inv-status').value,
+        reorder_level: parseFloat($('inv-reorder-level').value) || 0,
+        expiry_date:   $('inv-expiry-date').value,
+        restocked_at:  $('inv-restocked-at').value,
+        quantity:      parseFloat($('inv-quantity').value),
+        unit:          $('inv-unit').value.trim(),
       };
 
       if (!body.name || !body.quantity) {
@@ -334,10 +339,15 @@ if (window.location.pathname === '/owner') {
     $('save-inventory').addEventListener('click', async () => {
       const id = await getVendorID();
       const body = {
-        vendor_id: id,
-        name:      $('inv-name').value.trim(),
-        quantity:  parseFloat($('inv-quantity').value),
-        unit:      $('inv-unit').value.trim(),
+        vendor_id:     id,
+        name:          $('inv-name').value.trim(),
+        supplier_name: $('inv-supplier').value.trim(),
+        status:        $('inv-status').value,
+        reorder_level: parseFloat($('inv-reorder-level').value) || 0,
+        expiry_date:   $('inv-expiry-date').value,
+        restocked_at:  $('inv-restocked-at').value,
+        quantity:      parseFloat($('inv-quantity').value),
+        unit:          $('inv-unit').value.trim(),
       };
 
       if (!body.name || !body.quantity) {
@@ -404,15 +414,19 @@ async function loadInventory() {
   if (!tbody) return;
 
   if (!data || data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px">No inventory items yet.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">No inventory items yet.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = data.map(item => `
     <tr>
       <td>${item.name}</td>
+      <td>${item.supplier_name || '—'}</td>
+      <td>${item.status || '—'}</td>
       <td><strong>${item.quantity}</strong></td>
-      <td>${item.unit || '—'}</td>
+      <td>${item.reorder_level || '—'}</td>
+      <td>${item.expiry_date ? formatDate(item.expiry_date) : '—'}</td>
+      <td>${item.restocked_at ? formatDate(item.restocked_at) : '—'}</td>
       <td>${formatDate(item.updated_at)}</td>
     </tr>
   `).join('');
@@ -709,9 +723,14 @@ function clearExpenseForm() {
 }
 
 function clearInventoryForm() {
-  $('inv-name').value     = '';
-  $('inv-quantity').value = '';
-  $('inv-unit').value     = '';
+  $('inv-name').value          = '';
+  $('inv-supplier').value      = '';
+  $('inv-status').value        = '';
+  $('inv-reorder-level').value = '';
+  $('inv-expiry-date').value   = '';
+  $('inv-restocked-at').value  = '';
+  $('inv-quantity').value      = '';
+  $('inv-unit').value          = '';
 }
 
 window.addEventListener('pageshow', function(event) {

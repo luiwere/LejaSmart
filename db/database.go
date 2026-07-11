@@ -2,8 +2,8 @@ package db
 
 import (
 	"database/sql"
-	"log"
 	_ "github.com/mattn/go-sqlite3"
+	"log"
 )
 
 var DB *sql.DB
@@ -43,16 +43,16 @@ func Init() {
 func initDatabase(conn *sql.DB) {
 	queries := []string{
 
-	// Shops Table
-	`CREATE TABLE IF NOT EXISTS shops (
+		// Shops Table
+		`CREATE TABLE IF NOT EXISTS shops (
 		id TEXT PRIMARY KEY,
 		name TEXT NOT NULL,
 		code TEXT UNIQUE NOT NULL,
 		created_at TEXT DEFAULT (datetime('now'))
 	);`,
 
-	// Vendors Table
-	`CREATE TABLE IF NOT EXISTS vendors (
+		// Vendors Table
+		`CREATE TABLE IF NOT EXISTS vendors (
 		id TEXT PRIMARY KEY,
 		name TEXT NOT NULL,
 		email TEXT UNIQUE NOT NULL,
@@ -62,8 +62,8 @@ func initDatabase(conn *sql.DB) {
 		FOREIGN KEY (shop_id) REFERENCES shops(id)
 	);`,
 
-	// Users Table
-	`CREATE TABLE IF NOT EXISTS users (
+		// Users Table
+		`CREATE TABLE IF NOT EXISTS users (
 	id TEXT PRIMARY KEY,
 	username TEXT NOT NULL,
 	email TEXT UNIQUE NOT NULL,
@@ -74,8 +74,8 @@ func initDatabase(conn *sql.DB) {
 	FOREIGN KEY (shop_id) REFERENCES shops(id)
 	);`,
 
-	// Expenses Table
-	`CREATE TABLE IF NOT EXISTS expenses (
+		// Expenses Table
+		`CREATE TABLE IF NOT EXISTS expenses (
 		id TEXT PRIMARY KEY,
 		vendor_id TEXT NOT NULL,
 		shop_id TEXT NOT NULL,
@@ -89,12 +89,17 @@ func initDatabase(conn *sql.DB) {
 		FOREIGN KEY (shop_id) REFERENCES shops(id)
 	);`,
 
-	// Inventory Table
-	`CREATE TABLE IF NOT EXISTS inventory (
+		// Inventory Table
+		`CREATE TABLE IF NOT EXISTS inventory (
 		id TEXT PRIMARY KEY,
 		vendor_id TEXT NOT NULL,
 		shop_id TEXT NOT NULL,
 		name TEXT NOT NULL,
+		supplier_name TEXT,
+		status TEXT,
+		reorder_level REAL,
+		expiry_date TEXT,
+		restocked_at TEXT,
 		quantity REAL NOT NULL,
 		unit TEXT,
 		updated_at TEXT DEFAULT (datetime('now')),
@@ -102,8 +107,8 @@ func initDatabase(conn *sql.DB) {
 		FOREIGN KEY (shop_id) REFERENCES shops(id)
 	);`,
 
-	// Income Table
-	`CREATE TABLE IF NOT EXISTS income (
+		// Income Table
+		`CREATE TABLE IF NOT EXISTS income (
 		id TEXT PRIMARY KEY,
 		vendor_id TEXT NOT NULL,
 		shop_id TEXT NOT NULL,
@@ -115,8 +120,8 @@ func initDatabase(conn *sql.DB) {
 		FOREIGN KEY (shop_id) REFERENCES shops(id)
 	);`,
 
-	// Sales Table
-	`CREATE TABLE IF NOT EXISTS sales (
+		// Sales Table
+		`CREATE TABLE IF NOT EXISTS sales (
 		id TEXT PRIMARY KEY,
 		vendor_id TEXT NOT NULL,
 		shop_id TEXT NOT NULL,
@@ -151,6 +156,24 @@ func initDatabase(conn *sql.DB) {
 	for table, definition := range columnsToEnsure {
 		if err := ensureColumn(conn, table, "shop_id", definition); err != nil {
 			log.Fatal("could not ensure column:", err)
+		}
+	}
+
+	additionalColumns := map[string]map[string]string{
+		"inventory": {
+			"supplier_name": "supplier_name TEXT",
+			"status":        "status TEXT",
+			"reorder_level": "reorder_level REAL",
+			"expiry_date":   "expiry_date TEXT",
+			"restocked_at":  "restocked_at TEXT",
+		},
+	}
+
+	for table, columns := range additionalColumns {
+		for column, definition := range columns {
+			if err := ensureColumn(conn, table, column, definition); err != nil {
+				log.Fatal("could not ensure column:", err)
+			}
 		}
 	}
 }

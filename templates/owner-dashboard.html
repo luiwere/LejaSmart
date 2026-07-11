@@ -106,14 +106,46 @@
               <input type="text" id="inv-name" placeholder="e.g. Maize flour">
             </div>
             <div class="form-group">
+              <label>Supplier Name</label>
+              <input type="text" id="inv-supplier" placeholder="Mama Wanjiku Wholesalers">
+            </div>
+            <div class="form-group">
+              <label>Status</label>
+              <select id="inv-status">
+                <option value="">Select status</option>
+                <option value="In Stock">In Stock</option>
+                <option value="Low Stock">Low Stock</option>
+                <option value="Out of Stock">Out of Stock</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
               <label>Quantity</label>
               <input type="number" id="inv-quantity" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label>Reorder Level</label>
+              <input type="number" id="inv-reorder-level" placeholder="5" step="1">
             </div>
             <div class="form-group">
               <label>Unit</label>
               <input type="text" id="inv-unit" placeholder="kg, litres, bags...">
             </div>
           </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Expiry Date</label>
+              <input type="date" id="inv-expiry-date">
+            </div>
+            <div class="form-group">
+              <label>Date Restocked</label>
+              <input type="date" id="inv-restocked-at">
+            </div>
+          </div>
+
           <div class="form-actions">
             <button class="btn-secondary" id="cancel-inventory">Cancel</button>
             <button class="btn-primary" id="save-inventory">Save Item</button>
@@ -123,7 +155,16 @@
         <div class="card">
           <table class="data-table">
             <thead>
-              <tr><th>Item</th><th>Quantity</th><th>Unit</th><th>Last Updated</th></tr>
+              <tr>
+                <th>Item</th>
+                <th>Supplier</th>
+                <th>Status</th>
+                <th>Qty</th>
+                <th>Reorder</th>
+                <th>Expiry</th>
+                <th>Restocked</th>
+                <th>Last Updated</th>
+              </tr>
             </thead>
             <tbody id="inventory-table-body"></tbody>
           </table>
