@@ -51,6 +51,19 @@ func CreateUser(username, email, password, role, shopName, shopCode string) (str
 	if err != nil {
 		return "", err
 	}
+
+	// Create vendor record for vendor users so they appear in vendor lists
+	if role == "vendor" {
+		vendorID := uuid.New().String()
+		_, err = conn.Exec(
+			`INSERT INTO vendors (id, name, email, role, shop_id) VALUES (?, ?, ?, ?, ?)`,
+			vendorID, username, email, "vendor", shopID,
+		)
+		if err != nil {
+			return "", err
+		}
+	}
+
 	return generatedShopCode, nil
 }
 
