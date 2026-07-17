@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
-	"Digiledger/db"
+	"LejaSmart/db"
 )
 
 func Expenses(w http.ResponseWriter, r *http.Request) {

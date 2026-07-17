@@ -1,7 +1,7 @@
 package db
 
 import (
-	"Digiledger/models"
+	"LejaSmart/models"
 )
 
 func GetPnL(role, shopID, vendorID, from, to string) (models.PnLSummary, error) {

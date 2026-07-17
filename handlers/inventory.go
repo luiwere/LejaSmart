@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"Digiledger/db"
+	"LejaSmart/db"
 	"encoding/json"
 	"net/http"
 )

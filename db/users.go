@@ -1,7 +1,7 @@
 package db
 
 import (
-	"Digiledger/models"
+	"LejaSmart/models"
 	"database/sql"
 	"errors"
 	"github.com/google/uuid"

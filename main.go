@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"Digiledger/db"
-	"Digiledger/handlers"
+	"LejaSmart/db"
+	"LejaSmart/handlers"
 )
 
 func main() {

@@ -20,7 +20,7 @@ func Init() {
 	}
 
 	// Open shared database for vendors and accountants
-	DB, err = sql.Open("sqlite3", dbPath+"/digiledger.db")
+	DB, err = sql.Open("sqlite3", dbPath+"/lejasmart.db")
 	if err != nil {
 		log.Fatal("Could not open main database:", err)
 	}
@@ -28,7 +28,7 @@ func Init() {
 		log.Fatal("Could not connect to main database:", err)
 	}
 
-	OwnerDB, err = sql.Open("sqlite3", dbPath+"/digiledger_owner.db")
+	OwnerDB, err = sql.Open("sqlite3", dbPath+"/lejasmart_owner.db")
 	if err != nil {
 		log.Fatal("Could not open owner database:", err)
 	}

@@ -3,7 +3,7 @@ package db
 import (
     "database/sql"
     "github.com/google/uuid"
-    "Digiledger/models"
+    "LejaSmart/models"
 )
 
 func GetExpenses(role, shopID, vendorID string) ([]models.Expense, error) {

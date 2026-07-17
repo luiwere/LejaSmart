@@ -1,4 +1,4 @@
-module Digiledger
+module LejaSmart
 
 go 1.25.0
 

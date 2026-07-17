@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: digiledger
+    name: lejasmart
     runtime: go
-    buildCommand: go build -o digiledger .
-    startCommand: ./digiledger
+    buildCommand: go build -o lejasmart .
+    startCommand: ./lejasmart
     envVars:
       - key: PORT
         value: 8080

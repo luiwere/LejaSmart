@@ -1,10 +1,10 @@
 version: '3.8'
 services:
-  digiledger:
+  lejasmart:
     build: .
     ports:
       - "8080:8080"
     volumes:
-      - ./data/Digiledgerledger.db:/app/Digiledgerledger.db
-      - ./data/Digiledgerowner.db:/app/Digiledgerowner.db
+      - ./data/lejasmart.db:/app/lejasmart.db
+      - ./data/lejasmart_owner.db:/app/lejasmart_owner.db
     restart: unless-stopped

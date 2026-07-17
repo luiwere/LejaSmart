@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"net/http"
 
-	"Digiledger/db"
+	"LejaSmart/db"
 )
 
 func Vendors(w http.ResponseWriter, r *http.Request) {

@@ -2,7 +2,7 @@ package db
 
 import (
 	"github.com/google/uuid"
-	"Digiledger/models"
+	"LejaSmart/models"
 )
 
 func GetAllVendors(role, shopID string) ([]models.Vendor, error) {
