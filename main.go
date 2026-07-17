@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"Digiledger/db"
 	"Digiledger/handlers"
@@ -35,6 +36,12 @@ func main() {
 	http.HandleFunc("/sales/", handlers.Sales)
 	http.HandleFunc("/vendors", handlers.Vendors)
 
-	fmt.Println("Sever running on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+  // Get port from environment variable — required by Render
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "8080" // fallback for local development
+    }
+
+    fmt.Println("Server running on port", port)
+    log.Fatal(http.ListenAndServe(":"+port, nil))
 }

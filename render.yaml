@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: digiledger
+    runtime: go
+    buildCommand: go build -o digiledger .
+    startCommand: ./digiledger
+    envVars:
+      - key: PORT
+        value: 8080
+        

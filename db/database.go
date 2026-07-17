@@ -2,42 +2,44 @@ package db
 
 import (
 	"database/sql"
-	_ "github.com/mattn/go-sqlite3"
 	"log"
+	"os"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var DB *sql.DB
 var OwnerDB *sql.DB
 
-const (
-	SharedDBPath = "./Digiledgerledger.db"
-	OwnerDBPath  = "./Digiledgerowner.db"
-)
-
 func Init() {
 	var err error
 
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "."
+	}
+
 	// Open shared database for vendors and accountants
-	DB, err = sql.Open("sqlite3", SharedDBPath)
+	DB, err = sql.Open("sqlite3", dbPath+"/digiledger.db")
 	if err != nil {
-		log.Fatal("Could not open shared Database:", err)
+		log.Fatal("Could not open main database:", err)
 	}
 	if err = DB.Ping(); err != nil {
-		log.Fatal("Could not connect to shared Database:", err)
+		log.Fatal("Could not connect to main database:", err)
 	}
-	initDatabase(DB)
 
-	// Open owner-specific database
-	OwnerDB, err = sql.Open("sqlite3", OwnerDBPath)
+	OwnerDB, err = sql.Open("sqlite3", dbPath+"/digiledger_owner.db")
 	if err != nil {
-		log.Fatal("Could not open owner Database:", err)
+		log.Fatal("Could not open owner database:", err)
 	}
 	if err = OwnerDB.Ping(); err != nil {
-		log.Fatal("Could not connect to owner Database:", err)
+		log.Fatal("Could not connect to owner database:", err)
 	}
+
+	initDatabase(DB)
 	initDatabase(OwnerDB)
 
-	log.Println("Shared and owner databases connected and ready")
+	log.Println("Both databases connected and ready")
 }
 
 func initDatabase(conn *sql.DB) {
