@@ -64,51 +64,61 @@ if (logoutBtn) {
   });
 }
 
+// Common function to setup header for vendor pages
+async function setupVendorHeader() {
+  const sessionInfo = await getSessionInfo();
+
+  if (sessionInfo.shopName) {
+    const shopNameLabel = $('shop-name');
+    if (shopNameLabel) shopNameLabel.textContent = sessionInfo.shopName;
+  }
+
+  if (sessionInfo.shopCode) {
+    const shopIDValue = $('shop-id-value');
+    if (shopIDValue) shopIDValue.textContent = sessionInfo.shopCode;
+  }
+
+  const copyShopIDBtn = $('copy-shop-id');
+  if (copyShopIDBtn) {
+    copyShopIDBtn.addEventListener('click', async () => {
+      const shopID = $('shop-id-value')?.textContent || '';
+      if (!shopID) return;
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(shopID);
+        } else {
+          const textarea = document.createElement('textarea');
+          textarea.value = shopID;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+        }
+
+        copyShopIDBtn.textContent = 'Copied!';
+        setTimeout(() => {
+          copyShopIDBtn.textContent = 'Copy';
+        }, 1500);
+      } catch (err) {
+        alert('Could not copy shop ID. Please try again.');
+      }
+    });
+  }
+}
+
 if (window.location.pathname === '/vendor') {
   (async () => {
+    await setupVendorHeader();
+  })();
+}
+
+if (window.location.pathname === '/vendor/expenses') {
+  (async () => {
     const vendorID = await getVendorID();
-    const sessionInfo = await getSessionInfo();
-
-    if (sessionInfo.shopName) {
-      const shopNameLabel = $('shop-name');
-      if (shopNameLabel) shopNameLabel.textContent = sessionInfo.shopName;
-    }
-
-    if (sessionInfo.shopCode) {
-      const shopIDValue = $('shop-id-value');
-      if (shopIDValue) shopIDValue.textContent = sessionInfo.shopCode;
-    }
-
-    const copyShopIDBtn = $('copy-shop-id');
-    if (copyShopIDBtn) {
-      copyShopIDBtn.addEventListener('click', async () => {
-        const shopID = $('shop-id-value')?.textContent || '';
-        if (!shopID) return;
-
-        try {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(shopID);
-          } else {
-            const textarea = document.createElement('textarea');
-            textarea.value = shopID;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-          }
-
-          copyShopIDBtn.textContent = 'Copied!';
-          setTimeout(() => {
-            copyShopIDBtn.textContent = 'Copy';
-          }, 1500);
-        } catch (err) {
-          alert('Could not copy shop ID. Please try again.');
-        }
-      });
-    }
+    await setupVendorHeader();
 
     loadExpenses();
-    loadInventory();
     setupVoice();
 
     $('open-expense-form').addEventListener('click', () => show('expense-form'));
@@ -144,6 +154,15 @@ if (window.location.pathname === '/vendor') {
         alert('Could not save expense. Please try again.');
       }
     });
+  })();
+}
+
+if (window.location.pathname === '/vendor/inventory') {
+  (async () => {
+    const vendorID = await getVendorID();
+    await setupVendorHeader();
+
+    loadInventory();
 
     $('open-inventory-form').addEventListener('click', () => show('inventory-form'));
     $('cancel-inventory').addEventListener('click', () => hide('inventory-form'));

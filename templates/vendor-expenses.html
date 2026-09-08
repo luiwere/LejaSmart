@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>VENDOR EXPENSES</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="dashboard-page">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">LejaSmart</div>
+    <nav>
+      <a href="/vendor" class="nav-link">Home</a>
+      <a href="/vendor/expenses" class="nav-link active">Expenses</a>
+      <a href="/vendor/inventory" class="nav-link">Inventory</a>
+      </nav>
+    <button id="logout-btn" class="btn-logout">Logout</button>
+  </aside>
+
+  <main class="main-content">
+
+    <header class="dashboard-header">
+      <h1>My Dashboard</h1>
+      <div class="dashboard-header-right">
+        <div class="shop-details">
+          <span id="shop-name" class="shop-name">Shop Name</span>
+          <div class="shop-id-box">
+            <div class="shop-id-row">
+              <span class="shop-id-label">Shop ID:</span>
+              <code id="shop-id-value" class="shop-id-value">—</code>
+              <button id="copy-shop-id" class="btn-copy" type="button">Copy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── EXPENSES SECTION ── -->
+    <section id="expenses" class="section">
+      <div class="section-header">
+        <h2>Expenses</h2>
+        <button class="btn-primary" id="open-expense-form">+ Add Expense</button>
+      </div>
+
+      <!-- Add Expense Form (hidden by default) -->
+      <div id="expense-form" class="card form-card hidden">
+        <h3>New Expense</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Amount (KES)</label>
+            <input type="number" id="exp-amount" placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="exp-date">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Category</label>
+            <select id="exp-category">
+              <option value="food">Food</option>
+              <option value="transport">Transport</option>
+              <option value="supplies">Supplies</option>
+              <option value="utilities">Utilities</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Supplier Name</label>
+            <input type="text" id="exp-supplier" placeholder="Supplier or shop name">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="exp-notes" placeholder="Any extra details..."></textarea>
+        </div>
+
+        <!-- Voice Input -->
+        <div class="voice-row">
+          <button id="voice-btn" class="btn-voice">🎙 Speak Expense</button>
+          <span id="voice-status" class="voice-status"></span>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-secondary" id="cancel-expense">Cancel</button>
+          <button class="btn-primary" id="save-expense">Save Expense</button>
+        </div>
+      </div>
+
+      <!-- Expenses Table -->
+      <div class="card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Supplier</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Notes</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="expenses-table-body">
+            <!-- Filled by app.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/static/js/app.js"></script>
+  <script>
+    window.addEventListener('pageshow', function(event) {
+      if (event.persisted) {
+        // Check if user is still authenticated when returning via back button
+        fetch('/me')
+          .then(res => {
+            if (!res.ok) {
+              // User is not authenticated, redirect to login
+              window.location.href = '/login';
+            } else {
+              // User is authenticated, reload the page
+              window.location.reload();
+            }
+          })
+          .catch(() => {
+            // If fetch fails, redirect to login for safety
+            window.location.href = '/login';
+          });
+      }
+    });
+  </script>
+</body>
+</html>

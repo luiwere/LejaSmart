@@ -27,6 +27,8 @@ func main() {
 	http.HandleFunc("/", handlers.DashboardPage)
 	http.HandleFunc("/login", handlers.LoginPage)
 	http.HandleFunc("/vendor", handlers.VendorDashboard)
+	http.HandleFunc("/vendor/expenses", handlers.VendorExpenses)
+	http.HandleFunc("/vendor/inventory", handlers.VendorInventory)
 	http.HandleFunc("/accountant", handlers.Accountantdashboard)
 	http.HandleFunc("/logout", handlers.Logout)
 

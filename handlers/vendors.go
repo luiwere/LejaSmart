@@ -62,3 +62,21 @@ func OwnerDashboard(w http.ResponseWriter, r *http.Request) {
     }
     tmpl.Execute(w, nil)
 }
+
+func VendorExpenses(w http.ResponseWriter, r *http.Request) {
+    tmpl, err := template.ParseFiles("templates/vendor-expenses.html")
+    if err != nil {
+        http.Error(w, "Could not load page", http.StatusInternalServerError)
+        return
+    }
+    tmpl.Execute(w, nil)
+}
+
+func VendorInventory(w http.ResponseWriter, r *http.Request) {
+    tmpl, err := template.ParseFiles("templates/vendor-inventory.html")
+    if err != nil {
+        http.Error(w, "Could not load page", http.StatusInternalServerError)
+        return
+    }
+    tmpl.Execute(w, nil)
+}
