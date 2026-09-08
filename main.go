@@ -6,11 +6,18 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/joho/godotenv"
+
 	"LejaSmart/db"
 	"LejaSmart/handlers"
 )
 
 func main() {
+	// Load environment variables from .env if present
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using system environment variables")
+	}
+
 	// connect to Database
 	db.Init()
 
