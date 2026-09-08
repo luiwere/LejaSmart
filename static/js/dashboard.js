@@ -130,13 +130,13 @@ document.addEventListener('DOMContentLoaded', function () {
     voiceBtn.addEventListener('click', function () {
       voiceBtn.style.transform = 'scale(1.25)';
       voiceTranscript.textContent = "🎙 Listening in real-time...";
-      voiceTranscript.style.color = "#059669";
+      voiceTranscript.style.color = "#2563eb";
 
       setTimeout(() => {
         sampleIdx = (sampleIdx + 1) % sampleVoicePhrases.length;
         const currentSample = sampleVoicePhrases[sampleIdx];
         voiceTranscript.textContent = currentSample.phrase;
-        voiceTranscript.style.color = "#064e3b";
+        voiceTranscript.style.color = "#0f172a";
         voiceBtn.style.transform = 'scale(1)';
 
         const tagsContainer = document.querySelector('.voice-parsed-tags');
