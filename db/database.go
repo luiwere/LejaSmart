@@ -48,19 +48,19 @@ func Init() {
 
 	sqlDB, err := sql.Open("postgres", databaseURL)
 	if err != nil {
-		log.Fatal("Could not open main database:", err)
+		log.Fatal("Could not open main database: ", err)
 	}
 	if err = sqlDB.Ping(); err != nil {
-		log.Fatal("Could not connect to main database:", err)
+		log.Fatalf("Could not connect to main database: %v\nTroubleshooting hint: On Render, ensure both the Web Service and PostgreSQL database are in the SAME region if using the Internal Database URL, or use the External Database URL with sslmode=require.", err)
 	}
 	DB = &DBConn{db: sqlx.NewDb(sqlDB, "postgres")}
 
 	sqlOwnerDB, err := sql.Open("postgres", ownerDatabaseURL)
 	if err != nil {
-		log.Fatal("Could not open owner database:", err)
+		log.Fatal("Could not open owner database: ", err)
 	}
 	if err = sqlOwnerDB.Ping(); err != nil {
-		log.Fatal("Could not connect to owner database:", err)
+		log.Fatalf("Could not connect to owner database: %v\nTroubleshooting hint: On Render, ensure both the Web Service and PostgreSQL database are in the SAME region if using the Internal Database URL, or use the External Database URL with sslmode=require.", err)
 	}
 	OwnerDB = &DBConn{db: sqlx.NewDb(sqlOwnerDB, "postgres")}
 
