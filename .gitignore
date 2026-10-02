@@ -6,3 +6,6 @@
 
 # env
 *.env
+
+# user uploaded profile pictures
+uploads/

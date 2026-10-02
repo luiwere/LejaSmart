@@ -153,11 +153,14 @@ func Me(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
-		"id":        user.ID,
-		"role":      user.Role,
-		"shop_id":   user.ShopID,
-		"shop_name": shopName,
-		"shop_code": shopCode,
+		"id":         user.ID,
+		"username":   user.Username,
+		"email":      user.Email,
+		"role":       user.Role,
+		"shop_id":    user.ShopID,
+		"shop_name":  shopName,
+		"shop_code":  shopCode,
+		"avatar_url": user.AvatarURL,
 	})
 }
 

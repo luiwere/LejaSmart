@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>My Profile — LejaSmart</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="dashboard-page">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">LejaSmart</div>
+    <nav>
+      <a href="/vendor" class="nav-link" data-nav="vendor">Home</a>
+      <a href="/vendor/expenses" class="nav-link" data-nav="vendor">Expenses</a>
+      <a href="/vendor/inventory" class="nav-link" data-nav="vendor">Inventory</a>
+      <a href="/owner" class="nav-link" data-nav="owner">Owner Dashboard</a>
+      <a href="/accountant" class="nav-link" data-nav="accountant">Accountant</a>
+      <a href="/profile" class="nav-link active">Profile</a>
+    </nav>
+    <button id="logout-btn" class="btn-logout" onclick="window.location.href='/logout'">Logout</button>
+  </aside>
+
+  <main class="main-content">
+
+    <header class="dashboard-header">
+      <h1>My Profile</h1>
+      <span id="profile-role" class="badge badge-supplies"></span>
+    </header>
+
+    <div id="profile-message" class="hidden"></div>
+
+    <!-- ── PROFILE PICTURE ── -->
+    <section class="section">
+      <div class="card form-card profile-banner">
+        <div id="profile-pic" class="profile-pic"></div>
+        <div class="profile-banner-text">
+          <h3 id="profile-username">—</h3>
+          <p id="profile-email" class="profile-sub">—</p>
+          <p id="profile-joined" class="profile-sub profile-joined">—</p>
+        </div>
+        <div class="profile-banner-actions">
+          <input type="file" id="avatar-input" accept="image/png,image/jpeg,image/gif,image/webp" class="hidden">
+          <button id="avatar-upload-btn" class="btn-primary">Upload Photo</button>
+          <button id="avatar-remove-btn" class="btn-secondary hidden">Remove</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SIGN UP DETAILS ── -->
+    <section class="section">
+      <div class="section-header">
+        <h2>Account Details</h2>
+      </div>
+
+      <div class="card">
+        <table class="data-table">
+          <tbody>
+            <tr>
+              <th>Username</th>
+              <td id="detail-username">—</td>
+            </tr>
+            <tr>
+              <th>Email</th>
+              <td id="detail-email">—</td>
+            </tr>
+            <tr>
+              <th>Role</th>
+              <td id="detail-role">—</td>
+            </tr>
+            <tr>
+              <th>Shop Name</th>
+              <td id="detail-shop-name">—</td>
+            </tr>
+            <tr>
+              <th>Shop Code</th>
+              <td id="detail-shop-code">—</td>
+            </tr>
+            <tr>
+              <th>User ID</th>
+              <td><code id="detail-id" class="shop-id-value">—</code></td>
+            </tr>
+            <tr>
+              <th>Registered</th>
+              <td id="detail-created">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── EDIT PROFILE ── -->
+    <section class="section">
+      <div class="section-header">
+        <h2>Edit Profile</h2>
+      </div>
+
+      <div class="card form-card">
+        <form id="profile-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="pf-username">Username</label>
+              <input type="text" id="pf-username" placeholder="Your name">
+            </div>
+            <div class="form-group">
+              <label for="pf-email">Email</label>
+              <input type="email" id="pf-email" placeholder="you@example.com">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="pf-phone">Phone</label>
+              <input type="tel" id="pf-phone" placeholder="e.g. +254 712 345 678">
+            </div>
+            <div class="form-group">
+              <label for="pf-address">Location</label>
+              <input type="text" id="pf-address" placeholder="e.g. Nairobi, Kenya">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="pf-bio">About</label>
+            <textarea id="pf-bio" placeholder="Tell us about your shop or business"></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="reset" class="btn-secondary">Reset</button>
+            <button type="submit" class="btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ── CHANGE PASSWORD ── -->
+    <section class="section">
+      <div class="section-header">
+        <h2>Change Password</h2>
+      </div>
+
+      <div class="card form-card">
+        <form id="password-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="pw-current">Current Password</label>
+              <input type="password" id="pw-current" placeholder="••••••••" required>
+            </div>
+            <div class="form-group">
+              <label for="pw-new">New Password</label>
+              <input type="password" id="pw-new" placeholder="At least 6 characters" required>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Update Password</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/static/js/app.js"></script>
+  <script>
+    let currentProfile = null;
+
+    const messageBox = document.getElementById('profile-message');
+    const avatarInput = document.getElementById('avatar-input');
+    const profileForm = document.getElementById('profile-form');
+    const passwordForm = document.getElementById('password-form');
+
+    function setMessage(text, kind) {
+      messageBox.classList.remove('hidden', 'error-msg', 'success-msg');
+      messageBox.classList.add(kind === 'error' ? 'error-msg' : 'success-msg');
+      messageBox.textContent = text;
+    }
+
+    function clearMessage() {
+      messageBox.classList.add('hidden');
+    }
+
+    function initials(username) {
+      if (!username) return '?';
+      return username.trim().charAt(0).toUpperCase() || '?';
+    }
+
+    function formatDate(value) {
+      if (!value) return '—';
+      const parsed = new Date(value);
+      if (isNaN(parsed.getTime())) return value;
+      return parsed.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    function renderNavLinks(role) {
+      document.querySelectorAll('[data-nav]').forEach(function(link) {
+        link.classList.toggle('hidden', link.getAttribute('data-nav') !== role);
+      });
+    }
+
+    function renderProfile(profile) {
+      currentProfile = profile;
+
+      document.getElementById('profile-role').textContent = profile.role || '';
+      document.getElementById('profile-username').textContent = profile.username || '—';
+      document.getElementById('profile-email').textContent = profile.email || '—';
+      document.getElementById('profile-joined').textContent = 'Member since ' + formatDate(profile.created_at);
+
+      const pic = document.getElementById('profile-pic');
+      const removeBtn = document.getElementById('avatar-remove-btn');
+      if (profile.avatar_url) {
+        const img = document.createElement('img');
+        img.src = profile.avatar_url + '?v=' + Date.now();
+        img.alt = 'Profile picture';
+        pic.replaceChildren(img);
+        removeBtn.classList.remove('hidden');
+      } else {
+        pic.textContent = initials(profile.username);
+        removeBtn.classList.add('hidden');
+      }
+
+      document.getElementById('detail-username').textContent = profile.username || '—';
+      document.getElementById('detail-email').textContent = profile.email || '—';
+      document.getElementById('detail-role').textContent = profile.role || '—';
+      document.getElementById('detail-shop-name').textContent = profile.shop_name || '—';
+      document.getElementById('detail-shop-code').textContent = profile.shop_code || '—';
+      document.getElementById('detail-id').textContent = profile.id || '—';
+      document.getElementById('detail-created').textContent = formatDate(profile.created_at);
+
+      document.getElementById('pf-username').value = profile.username || '';
+      document.getElementById('pf-email').value = profile.email || '';
+      document.getElementById('pf-phone').value = profile.phone || '';
+      document.getElementById('pf-address').value = profile.address || '';
+      document.getElementById('pf-bio').value = profile.bio || '';
+    }
+
+    async function loadProfile() {
+      const res = await fetch('/profile/data');
+      if (!res.ok) {
+        window.location.href = '/login';
+        return;
+      }
+      const profile = await res.json();
+      renderNavLinks(profile.role);
+      renderProfile(profile);
+    }
+
+    profileForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      clearMessage();
+
+      const body = {
+        username: document.getElementById('pf-username').value.trim(),
+        email: document.getElementById('pf-email').value.trim(),
+        phone: document.getElementById('pf-phone').value.trim(),
+        address: document.getElementById('pf-address').value.trim(),
+        bio: document.getElementById('pf-bio').value.trim(),
+      };
+
+      const res = await fetch('/profile/details', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      if (res.status === 409) {
+        setMessage('That email is already in use.', 'error');
+        return;
+      }
+      if (!res.ok) {
+        setMessage('Could not save your profile. Please try again.', 'error');
+        return;
+      }
+
+      renderProfile(await res.json());
+      setMessage('Profile saved.', 'success');
+    });
+
+    profileForm.addEventListener('reset', function() {
+      if (currentProfile) renderProfile(currentProfile);
+    });
+
+    passwordForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      clearMessage();
+
+      const body = {
+        current_password: document.getElementById('pw-current').value,
+        new_password: document.getElementById('pw-new').value,
+      };
+
+      const res = await fetch('/profile/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const detail = await res.text();
+        setMessage(detail || 'Could not update your password.', 'error');
+        return;
+      }
+
+      passwordForm.reset();
+      setMessage('Password updated.', 'success');
+    });
+
+    document.getElementById('avatar-upload-btn').addEventListener('click', function() {
+      avatarInput.click();
+    });
+
+    avatarInput.addEventListener('change', async function() {
+      if (!avatarInput.files || !avatarInput.files[0]) return;
+      clearMessage();
+
+      const formData = new FormData();
+      formData.append('avatar', avatarInput.files[0]);
+
+      const res = await fetch('/profile/avatar', { method: 'POST', body: formData });
+
+      if (!res.ok) {
+        setMessage((await res.text()) || 'Could not upload that image.', 'error');
+        avatarInput.value = '';
+        return;
+      }
+
+      const data = await res.json();
+      currentProfile.avatar_url = data.avatar_url;
+      renderProfile(currentProfile);
+      avatarInput.value = '';
+      setMessage('Profile picture updated.', 'success');
+    });
+
+    document.getElementById('avatar-remove-btn').addEventListener('click', async function() {
+      clearMessage();
+
+      const res = await fetch('/profile/avatar', { method: 'DELETE' });
+      if (!res.ok) {
+        setMessage('Could not remove that image.', 'error');
+        return;
+      }
+
+      currentProfile.avatar_url = '';
+      renderProfile(currentProfile);
+      setMessage('Profile picture removed.', 'success');
+    });
+
+    loadProfile();
+  </script>
+
+</body>
+</html>

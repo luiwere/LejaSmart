@@ -21,7 +21,13 @@ func main() {
 	// connect to Database
 	db.Init()
 
+	// profile pictures are written to disk, so make sure the directory exists
+	if err := os.MkdirAll(handlers.UploadDir(), 0o755); err != nil {
+		log.Println("Could not create upload directory:", err)
+	}
+
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	http.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir(handlers.UploadDir()))))
 
 	http.HandleFunc("/register", handlers.RegisterPage)
 	http.HandleFunc("/", handlers.DashboardPage)
@@ -31,6 +37,12 @@ func main() {
 	http.HandleFunc("/vendor/inventory", handlers.VendorInventory)
 	http.HandleFunc("/accountant", handlers.Accountantdashboard)
 	http.HandleFunc("/logout", handlers.Logout)
+
+	http.HandleFunc("/profile", handlers.ProfilePage)
+	http.HandleFunc("/profile/data", handlers.ProfileData)
+	http.HandleFunc("/profile/details", handlers.UpdateProfileDetails)
+	http.HandleFunc("/profile/password", handlers.UpdateProfilePassword)
+	http.HandleFunc("/profile/avatar", handlers.ProfileAvatar)
 
 	http.HandleFunc("/me", handlers.Me)
 

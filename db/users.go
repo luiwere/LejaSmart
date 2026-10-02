@@ -9,6 +9,11 @@ import (
 	"strings"
 )
 
+var (
+	ErrEmailTaken       = errors.New("email already taken")
+	ErrPasswordTooShort = errors.New("password must be at least 6 characters")
+)
+
 func CreateUser(username, email, password, role, shopName, shopCode string) (string, error) {
 	id := uuid.New().String()
 
@@ -18,7 +23,8 @@ func CreateUser(username, email, password, role, shopName, shopCode string) (str
 	}
 
 	conn := DBForRole(role)
-	shopID := ""
+	// shopID is nil for owners, who are not attached to any shop.
+	var shopID interface{}
 	generatedShopCode := ""
 
 	switch role {
@@ -39,7 +45,8 @@ func CreateUser(username, email, password, role, shopName, shopCode string) (str
 			return "", err
 		}
 	case "owner":
-		shopID = ""
+		// Owners do not belong to a shop, so they carry no shop_id at all.
+		shopID = nil
 	default:
 		return "", errors.New("invalid role")
 	}
@@ -67,29 +74,154 @@ func CreateUser(username, email, password, role, shopName, shopCode string) (str
 	return generatedShopCode, nil
 }
 
+const userColumns = `id, username, email, password, role, shop_id, phone, address, bio, avatar_url, created_at`
+
+// scanUser scans the columns listed in userColumns into a User. Every optional
+// column is nullable in the database, so it is read through sql.NullString.
+func scanUser(scanner interface{ Scan(dest ...interface{}) error }) (models.User, error) {
+	var u models.User
+	var shopID, phone, address, bio, avatarURL, createdAt sql.NullString
+	err := scanner.Scan(&u.ID, &u.Username, &u.Email, &u.Password, &u.Role, &shopID,
+		&phone, &address, &bio, &avatarURL, &createdAt)
+	u.ShopID = shopID.String
+	u.Phone = phone.String
+	u.Address = address.String
+	u.Bio = bio.String
+	u.AvatarURL = avatarURL.String
+	u.CreatedAt = createdAt.String
+	return u, err
+}
+
+// userConns returns both databases in lookup order so profile reads and writes
+// always reach the user regardless of which database they were created in.
+func userConns(role string) []*DBConn {
+	if role == "owner" {
+		return []*DBConn{OwnerDB, DB}
+	}
+	return []*DBConn{DB, OwnerDB}
+}
+
 func GetUserByEmail(email string) (models.User, error) {
 	var u models.User
-	conn := DBForEmail(email)
-	err := conn.QueryRow(
-		`SELECT id, username, email, password, role, shop_id, created_at FROM users WHERE email = ?`, email,
-	).Scan(&u.ID, &u.Username, &u.Email, &u.Password, &u.Role, &u.ShopID, &u.CreatedAt)
-	if err == sql.ErrNoRows && conn == DB {
-		conn = OwnerDB
-		err = conn.QueryRow(`SELECT id, username, email, password, role, shop_id, created_at FROM users WHERE email = ?`, email).
-			Scan(&u.ID, &u.Username, &u.Email, &u.Password, &u.Role, &u.ShopID, &u.CreatedAt)
+	var err error
+	for _, conn := range userConns("") {
+		u, err = scanUser(conn.QueryRow(`SELECT `+userColumns+` FROM users WHERE email = ?`, email))
+		if err == nil {
+			return u, nil
+		}
+		if err != sql.ErrNoRows {
+			return u, err
+		}
 	}
 	return u, err
 }
 
 func GetUserByID(id string) (models.User, error) {
 	var u models.User
-	err := DB.QueryRow(`SELECT id, username, email, password, role, shop_id, created_at FROM users WHERE id = ?`, id).
-		Scan(&u.ID, &u.Username, &u.Email, &u.Password, &u.Role, &u.ShopID, &u.CreatedAt)
-	if err == sql.ErrNoRows {
-		err = OwnerDB.QueryRow(`SELECT id, username, email, password, role, shop_id, created_at FROM users WHERE id = ?`, id).
-			Scan(&u.ID, &u.Username, &u.Email, &u.Password, &u.Role, &u.ShopID, &u.CreatedAt)
+	var err error
+	for _, conn := range userConns("") {
+		u, err = scanUser(conn.QueryRow(`SELECT `+userColumns+` FROM users WHERE id = ?`, id))
+		if err == nil {
+			return u, nil
+		}
+		if err != sql.ErrNoRows {
+			return u, err
+		}
 	}
 	return u, err
+}
+
+// ProfileUpdate carries the editable profile fields.
+type ProfileUpdate struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Phone    string `json:"phone"`
+	Address  string `json:"address"`
+	Bio      string `json:"bio"`
+}
+
+// UpdateProfile writes the editable profile fields for a user. The email is
+// checked across both databases so it cannot collide with an existing account.
+func UpdateProfile(id, role string, p ProfileUpdate) (models.User, error) {
+	existing, err := GetUserByID(id)
+	if err != nil {
+		return existing, err
+	}
+
+	if p.Email != "" && p.Email != existing.Email {
+		taken, err := GetUserByEmail(p.Email)
+		if err == nil && taken.ID != id {
+			return existing, ErrEmailTaken
+		}
+		if err != nil && err != sql.ErrNoRows {
+			return existing, err
+		}
+	}
+
+	email := p.Email
+	if email == "" {
+		email = existing.Email
+	}
+
+	username := p.Username
+	if username == "" {
+		username = existing.Username
+	}
+
+	for _, conn := range userConns(role) {
+		res, err := conn.Exec(
+			`UPDATE users SET username = ?, email = ?, phone = ?, address = ?, bio = ? WHERE id = ?`,
+			username, email, p.Phone, p.Address, p.Bio, id,
+		)
+		if err != nil {
+			return existing, err
+		}
+		if n, err := res.RowsAffected(); err == nil && n > 0 {
+			// Keep the vendor listing in sync with the user it mirrors.
+			if role == "vendor" {
+				conn.Exec(`UPDATE vendors SET name = ?, email = ? WHERE email = ?`,
+					username, email, existing.Email)
+			}
+			return GetUserByID(id)
+		}
+	}
+
+	return existing, sql.ErrNoRows
+}
+
+// UpdateUserAvatar stores the avatar path for a user.
+func UpdateUserAvatar(id, role, avatarURL string) error {
+	for _, conn := range userConns(role) {
+		res, err := conn.Exec(`UPDATE users SET avatar_url = ? WHERE id = ?`, avatarURL, id)
+		if err != nil {
+			return err
+		}
+		if n, err := res.RowsAffected(); err == nil && n > 0 {
+			return nil
+		}
+	}
+	return sql.ErrNoRows
+}
+
+// UpdateUserPassword re-hashes and stores a new password.
+func UpdateUserPassword(id, role, newPassword string) error {
+	if len(newPassword) < 6 {
+		return ErrPasswordTooShort
+	}
+	hashed, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	for _, conn := range userConns(role) {
+		res, err := conn.Exec(`UPDATE users SET password = ? WHERE id = ?`, string(hashed), id)
+		if err != nil {
+			return err
+		}
+		if n, err := res.RowsAffected(); err == nil && n > 0 {
+			return nil
+		}
+	}
+	return sql.ErrNoRows
 }
 
 func GetShopNameByID(shopID string) (string, error) {

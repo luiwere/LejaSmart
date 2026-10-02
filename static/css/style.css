@@ -623,3 +623,90 @@ a {
 }
 }
 
+/* ── Profile page ── */
+
+.profile-banner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.profile-pic {
+  width: 104px;
+  height: 104px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  font-weight: 700;
+  overflow: hidden;
+}
+
+.profile-pic img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-banner-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-banner-text h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  overflow-wrap: anywhere;
+}
+
+.profile-sub {
+  color: var(--muted);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.profile-joined {
+  font-size: 13px;
+}
+
+.profile-banner-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.profile-section-note {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.success-msg {
+  background: #f0fff4;
+  color: #1b4332;
+  border: 1px solid #10b981;
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+  .profile-banner {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .profile-banner-actions {
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+

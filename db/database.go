@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -94,15 +95,19 @@ func initDatabase(conn *DBConn) {
 
 		// Users Table
 		`CREATE TABLE IF NOT EXISTS users (
-	id TEXT PRIMARY KEY,
-	username TEXT NOT NULL,
-	email TEXT UNIQUE NOT NULL,
-	password TEXT NOT NULL,
-	role TEXT NOT NULL DEFAULT 'vendor',
-	shop_id TEXT NOT NULL,
-	created_at TEXT DEFAULT now()::text,
-	FOREIGN KEY (shop_id) REFERENCES shops(id)
-	);`,
+    	id TEXT PRIMARY KEY,
+    	username TEXT NOT NULL,
+    	email TEXT UNIQUE NOT NULL,
+    	password TEXT NOT NULL,
+    	role TEXT NOT NULL DEFAULT 'vendor',
+    	shop_id TEXT,
+    	phone TEXT DEFAULT '',
+    	address TEXT DEFAULT '',
+    	bio TEXT DEFAULT '',
+    	avatar_url TEXT DEFAULT '',
+    	created_at TEXT DEFAULT now()::text,
+    	FOREIGN KEY (shop_id) REFERENCES shops(id)
+   	);`,
 
 		// Expenses Table
 		`CREATE TABLE IF NOT EXISTS expenses (
@@ -174,7 +179,6 @@ func initDatabase(conn *DBConn) {
 	}
 
 	columnsToEnsure := map[string]string{
-		"users":     "shop_id TEXT NOT NULL DEFAULT ''",
 		"vendors":   "shop_id TEXT NOT NULL DEFAULT ''",
 		"expenses":  "shop_id TEXT NOT NULL DEFAULT ''",
 		"inventory": "shop_id TEXT NOT NULL DEFAULT ''",
@@ -188,6 +192,11 @@ func initDatabase(conn *DBConn) {
 		}
 	}
 
+	// Owners are not attached to a shop, so users.shop_id has to accept NULL.
+	if err := makeUserShopIDOptional(conn); err != nil {
+		log.Fatal("could not relax users.shop_id:", err)
+	}
+
 	additionalColumns := map[string]map[string]string{
 		"inventory": {
 			"supplier_name": "supplier_name TEXT",
@@ -195,6 +204,12 @@ func initDatabase(conn *DBConn) {
 			"reorder_level": "reorder_level REAL",
 			"expiry_date":   "expiry_date TEXT",
 			"restocked_at":  "restocked_at TEXT",
+		},
+		"users": {
+			"phone":      "phone TEXT DEFAULT ''",
+			"address":    "address TEXT DEFAULT ''",
+			"bio":        "bio TEXT DEFAULT ''",
+			"avatar_url": "avatar_url TEXT DEFAULT ''",
 		},
 	}
 
@@ -207,12 +222,52 @@ func initDatabase(conn *DBConn) {
 	}
 }
 
+const userShopIDForeignKey = "users_shop_id_fkey"
+
+// makeUserShopIDOptional lets users rows carry a NULL shop_id, which is how
+// owners are stored. It is idempotent, so it is safe to run on every boot.
+func makeUserShopIDOptional(conn *DBConn) error {
+	var exists bool
+	if err := conn.QueryRow(
+		`SELECT EXISTS (SELECT 1 FROM information_schema.table_constraints
+		 WHERE table_name = 'users' AND constraint_name = $1)`,
+		userShopIDForeignKey,
+	).Scan(&exists); err != nil {
+		return err
+	}
+
+	// An empty string can never satisfy the foreign key, so clear it first.
+	if _, err := conn.Exec(`UPDATE users SET shop_id = NULL WHERE shop_id = ''`); err != nil {
+		return err
+	}
+
+	if exists {
+		if _, err := conn.Exec(fmt.Sprintf(`ALTER TABLE users DROP CONSTRAINT %s`, userShopIDForeignKey)); err != nil {
+			return err
+		}
+	}
+
+	// Re-create it without NOT NULL so NULL shop ids are accepted.
+	if _, err := conn.Exec(`ALTER TABLE users ALTER COLUMN shop_id DROP NOT NULL`); err != nil {
+		return err
+	}
+	_, err := conn.Exec(fmt.Sprintf(
+		`ALTER TABLE users ADD CONSTRAINT %s FOREIGN KEY (shop_id) REFERENCES shops(id)`, userShopIDForeignKey))
+	return err
+}
+
 func ensureColumn(conn *DBConn, table, column, definition string) error {
 	// Information schema check for Postgres
 	var colName string
 	q := `SELECT column_name FROM information_schema.columns WHERE table_name = $1 AND column_name = $2`
 	if err := conn.QueryRow(q, table, column).Scan(&colName); err == nil {
 		return nil
+	}
+	// Some callers pass the full "column TYPE" fragment, so drop a leading
+	// duplicate of the column name before building the statement.
+	definition = strings.TrimSpace(definition)
+	if rest := strings.TrimPrefix(definition, column); rest != definition {
+		definition = strings.TrimSpace(rest)
 	}
 	// If not exists, add the column
 	_, err := conn.Exec(fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s", table, column, definition))
