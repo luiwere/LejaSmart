@@ -20,6 +20,12 @@ type DBConn struct {
 	db *sqlx.DB
 }
 
+// NewDBConn wraps an existing *sql.DB into a DBConn. This is primarily used
+// for testing where the underlying database may be SQLite instead of Postgres.
+func NewDBConn(sqlDB *sql.DB) *DBConn {
+	return &DBConn{db: sqlx.NewDb(sqlDB, "postgres")}
+}
+
 func (c *DBConn) Query(query string, args ...interface{}) (*sql.Rows, error) {
 	q := sqlx.Rebind(sqlx.DOLLAR, query)
 	return c.db.Query(q, args...)
